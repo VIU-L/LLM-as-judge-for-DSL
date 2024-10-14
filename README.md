@@ -4,4 +4,4 @@ Next to do:
 (actually these 2 options are kind of mutually exclusive...)
 
 ### This reposit is for the group project in Ecole Polytechnique. ###
-### Please do not use or save the files in this reposit if you are not involved with the project, thank you ! ###
+### Please do not use or download the files in this reposit if you are not involved with the project, thank you ! ###
