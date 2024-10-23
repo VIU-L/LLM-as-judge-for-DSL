@@ -114,7 +114,7 @@ def check_compilation(script):
             if result["IsCompOk"]:
                 return True
             else:
-                print("Compilation Failed!")
+                print("#### Compilation Failed")
                 for message in result["CompMessages"]:
                     print(f"Error: {message['Text']} (Line: {message['Line']}, Start: {message['Start']}, Length: {message['Length']}, Severity: {message['Severity']})")
                     return False
