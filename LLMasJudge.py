@@ -100,17 +100,16 @@ def pipeline_verify(challenge, coder_personality, judge_personality = judge_pers
         if verbose:
             print('### compile try:', compile_try)
             print('#### STUDENT ANSWER:\n', stud_sentence)
-            print('#### Extracted code:\n', extract_code(stud_sentence))
 
         if (question.split("\n")[0] ==\
         '# this question expects a textual answer and not generation of code. #'):
-            print('#### Compilation : theoretical question, no compile.')
+            print('#### Compilation: theoretical question, no compile.')
             break
         if(check_compilation(extract_code(stud_sentence))):
-            print('#### Compilation : OK')
+            print('#### Compilation: OK')
             break
         if compile_try == n_tries:
-            print( "### Compilation : too many failures !")
+            print( "### Compilation: too many failures !")
             if not verbose:
                 print('badcode', extract_code(stud_sentence))
             return stud_sentence,"too many compilation failures!", False
