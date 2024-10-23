@@ -68,7 +68,7 @@ verifier_personality="Your task is to summarize the input given by the judge:\
 def pipeline_verify(challenge,coder_personality,judge_personality=judge_personality_teacherAuthority):
 
     question,prof_answer,references=decompose_challenge(challenge)
-    ref_str=create_ref(references)    
+    ref_str = create_ref(references)    
     n_tries=3
 
     for compile_try in range(n_tries):
