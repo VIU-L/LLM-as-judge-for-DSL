@@ -3,13 +3,13 @@ A py copy of the original LLMasJudge.ipynb to avoid merging conflicts.
 It uses OpenAI's GPT-3.5-turbo model to generate and judge responses based on predefined personalities and rules.
 Functions:
 ----------
-- pipeline_verify(challenge, coder_personality, judge_personality=judge_personality_teacherAuthority):
+- pipeline_verify:
     1. Generate a student's response to a given challenge.
     2. Check the response for compilation errors. if it does not compile, go back to step 1.
     2. Verity the response using a judge.
     3. Then a verifier converts the judge's decision to a binary output.
 
-- pipeline_score_allchallenge(indexes, coder_personality):
+- pipeline_score_allchallenge:
     Test on a list of challenges by verifying each one using the pipeline_verify function.
     It prints the number of correct responses and the overall percentage accuracy.
 
@@ -72,12 +72,19 @@ verifier_personality="Your task is to summarize the input given by the judge:\
 # %% Functions
 # for each question, try 3 generation-compilations.
 # if compiles, further check with judge.
-def pipeline_verify(challenge, coder_personality, judge_personality = judge_personality_teacherAuthority, n_tries = 3):
-
+def pipeline_verify(challenge, coder_personality, judge_personality = judge_personality_teacherAuthority, n_tries = 3, verbose=True):
+    """
+    1. Generate a student's response to a given challenge.
+    2. Check the response for compilation errors. if it does not compile, go back to step 1.
+    2. Verity the response using a judge.
+    3. Then a verifier converts the judge's decision to a binary output.
+    """
+     
     question,prof_answer,references=decompose_challenge(challenge)
     ref_str = create_ref(references)    
 
-    for compile_try in range(n_tries):
+    # generate an answer and compile the student's answer until it compiles or the number of tries is reached
+    for compile_try in range(1, n_tries+1):
         coder_prompt=question
         coder_response = client.chat.completions.create(
             model='gpt-3.5-turbo',
@@ -89,18 +96,26 @@ def pipeline_verify(challenge, coder_personality, judge_personality = judge_pers
             temperature=0.2,
         )
         stud_sentence=coder_response.choices[0].message.content
+        
+        if verbose:
+            print('### compile try:', compile_try)
+            print('#### STUDENT ANSWER:\n', stud_sentence)
+            print('#### Extracted code:\n', extract_code(stud_sentence))
+
         if (question.split("\n")[0] ==\
         '# this question expects a textual answer and not generation of code. #'):
-            print('# theoretical question, no compile.')
+            print('#### Compilation : theoretical question, no compile.')
             break
         if(check_compilation(extract_code(stud_sentence))):
-            print('# compile ok')
+            print('#### Compilation : OK')
             break
-        elif (compile_try==n_tries-1):
-            print( "# too many failures !")
-            print('# badcode:\n'+extract_code(stud_sentence))
-            return stud_sentence,"too many failures !",False
+        if compile_try == n_tries:
+            print( "### Compilation : too many failures !")
+            if not verbose:
+                print('badcode', extract_code(stud_sentence))
+            return stud_sentence,"too many compilation failures!", False
 
+    # judge the student's answer
     judge_prompt = "### QUESTION: "+question+"\n### PROFESSOR ANSWER: "+prof_answer+"\n### STUDENT ANSWER: "+stud_sentence
     judge_response = client.chat.completions.create(
         model='gpt-3.5-turbo',
@@ -111,9 +126,11 @@ def pipeline_verify(challenge, coder_personality, judge_personality = judge_pers
         max_tokens=800,  # Adjust the number of tokens based on your needs
         temperature=0.2,
     )
-
     judge_sentence=judge_response.choices[0].message.content
-    
+
+    if verbose: print('### JUDGE ANSWER:\n', judge_sentence)
+
+    # verify the judge's decision
     verifier_response = client.chat.completions.create(
     model='gpt-3.5-turbo',
     messages=[
@@ -124,24 +141,31 @@ def pipeline_verify(challenge, coder_personality, judge_personality = judge_pers
     temperature=0.05)
 
     judge_decision = (verifier_response.choices[0].message.content == '1')
-    print ('# judge_decision:',judge_decision)
-    if not judge_decision:
-        print('# badcode:\n', extract_code(stud_sentence))
-        print('# judge explanation:\n', judge_sentence)
+
+    if verbose: print ('### judge_decision:',judge_decision)
+    if not verbose and not judge_decision:
+        print('### BADCODE:\n', extract_code(stud_sentence))
+        print('### judge explanation:\n', judge_sentence)
+
     return stud_sentence, judge_sentence, judge_decision
 
-def pipeline_score_allchallenge(paths, coder_personality):
+def pipeline_score_allchallenge(paths, coder_personality, verbose=True):
     """A all-in-one function to score a model on a list of challenges"""
     challenges = [read_file(path) for path in paths]
     score = 0
+    compilation_success = 0
     for i in range(len(challenges)): 
         challenge = challenges[i]
-        print('### verifying challenge ' + paths[i])
-        _, _, judge_decision = pipeline_verify(challenge,coder_personality)
+        print('## verifying challenge ' + paths[i], '\n')
+        _, judge_sentence, judge_decision = pipeline_verify(challenge,coder_personality,verbose=verbose)
+        if (judge_sentence=='too many compilation failures!'):
+            continue
+        compilation_success += 1
         if (judge_decision): score+=1
         print('\n')
 
-    print('Accuracy: '+str(score)+' out of '+str(len(challenges))+', '+str(score/len(challenges)*100)+'%')
+    print('## Compilation success rate:\n'+str(compilation_success)+' out of '+str(len(challenges))+', '+str(compilation_success/len(challenges)*100)+'%')
+    print('## Accuracy:\n'+str(score)+' out of '+str(len(challenges))+', '+str(score/len(challenges)*100)+'%')
 
 # %% main
 if __name__ == '__main__':
@@ -149,6 +173,7 @@ if __name__ == '__main__':
     from datetime import datetime
     
     # Get the date and time as YYYY-mm-dd-xx:xx
+    input_challenge_folder = "mychallenges"
     folder_path = os.path.join("output","LLMasJudge")
     output_path = os.path.join(folder_path, f"{datetime.now().strftime("%Y-%m-%d-%H-%M")}.md")
     
@@ -160,11 +185,11 @@ if __name__ == '__main__':
     with open(output_path, 'w') as f:
         tee = Tee(sys.stdout, f)
         sys.stdout = tee
-        # indexes = [ f for f in os.listdir('mychallenges') if f.endswith('.md') and f!='description.md']
-        paths = ['mychallenges/c000.md']
-        pipeline_score_allchallenge(paths, coder_personality)
+        # Attention, cela coûte cher en argent
+        # challenge_paths = [os.path.join(input_challenge_folder, filename) 
+        #          for filename in os.listdir(input_challenge_folder)
+        #          if filename.endswith('.md') and filename!='description.md']
+        
+        challenge_paths = ["mychallenges/c010.md"]
+        pipeline_score_allchallenge(challenge_paths, coder_personality, verbose=True)
         sys.stdout = sys.__stdout__  # Reset stdout to default
-
-    # Delete the file if nothing is written to it
-    if os.path.exists(output_path) and os.path.getsize(output_path) == 0:
-        os.remove(output_path)
