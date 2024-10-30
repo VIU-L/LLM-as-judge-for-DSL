@@ -1,4 +1,30 @@
 import requests
+import sys
+
+class Tee:
+    """
+    A class that duplicates standard output to multiple outputs.
+    Attributes:
+        files (tuple): A tuple of file-like objects to which the data will be written.
+    Methods:
+        __init__(*files):
+            Initializes the Tee object with multiple file-like objects.
+        write(data):
+            Writes the given data to all file-like objects and flushes them to ensure immediate writing.
+        flush():
+            Flushes all file-like objects to ensure all data is written.
+    """
+    def __init__(self, *files):
+        self.files = files
+
+    def write(self, data):
+        for f in self.files:
+            f.write(data)
+            f.flush()  # To make sure data is written immediately
+
+    def flush(self):
+        for f in self.files:
+            f.flush()
 
 def read_file(path):
     with open(path, 'r') as file:
@@ -88,7 +114,7 @@ def check_compilation(script):
             if result["IsCompOk"]:
                 return True
             else:
-                print("Compilation Failed!")
+                print("#### Compilation Failed")
                 for message in result["CompMessages"]:
                     print(f"Error: {message['Text']} (Line: {message['Line']}, Start: {message['Start']}, Length: {message['Length']}, Severity: {message['Severity']})")
                     return False
