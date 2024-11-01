@@ -126,7 +126,7 @@ read "/sample/items.tsv" as Items[id] with
   Name : text
   Brand : text
 
-// `expect [date]` is the go-to-option to access to `Day[date]`, `Week[week]` and `Month[mont]` tables.
+// `expect [date]` is the go-to-option to access to `Day[date]`, `Week[week]` and `Month[month]` tables.
 read "/sample/orders.tsv.gz" as Orders expect [id, date] with
   "Id" as id : text
   "Date" as date : date
@@ -137,7 +137,7 @@ read "/sample/orders.tsv.gz" as Orders expect [id, date] with
 lastOrderDate = max(Orders.Date) // Aggregate to the `Scalar` table by default
  
 // Filtered tables: `Day`, `Week`, `Month` and `Orders`
-// `Orders` is filtered too because is has `date` as secondary dimension (via `expect`).
+// `Orders` is filtered too because it has `date` as secondary dimension (via `expect`).
 where date >= lastOrderDate - 365 
   // The most frequently used currency during the last year
   currency = mode(Orders.Currency) when (date >= oend - 365)
@@ -290,6 +290,29 @@ show scalar "Total sales ever" with sum(Sales.SalesUsd)
 
 Calendar tables are auto-created by having a `read` statement with `expect [date]`.
 To extend the range of `Day` into the future use `span`.
+
+Envision includes an extensive support for calendar conversions, e.g. `date(week, dayOfWeek)`, `week(year, weekOfYear)`, and calendar operations, e.g. `monthStart()`, `monday()`. As a rule of thumb, round-trips between text values and calendar values is a strong hint that the script should be rewritten to take advantage of those built-in functions.
+
+Envision can convert a date to a week or a month, and vice versa.
+
+```envision
+d = date(2021, 3, 21)
+w = week(2021, 20)
+m = month(2021, 5)
+
+show summary "Time values" a1a3 with 
+  text(d) // '2021-03-21'
+  text(w) // '2021-W20'
+  text(m) // '2021-05'
+```
+
+The `parseDate()` function parses `text` values  into `date` values:
+
+```envision
+d = parseDate("2021-03-21")
+show scalar "Parsed date" with d // 'Mar 21, 2021'
+```
+The two functions `text(date)` and `parseDate()` are symmetrical
 
 ## Tiles
 
