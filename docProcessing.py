@@ -56,11 +56,11 @@ def process_markdown_folder(folder_path):
     {filename: {subtitle: {0: text_before_first_subsubtitle, subsubtitle: text, "ALL": full_text_of_subtitle_section}}}.
     """
     DOCU = {}
+    pure_texts=[]
 
     for root, _, files in os.walk(folder_path):
         for file in files:
             if file.endswith(".md"):
-                print(file,type(file))
                 file_path = os.path.join(root, file)
                 with open(file_path, "r", encoding="utf-8") as f:
                     content = f.read()
@@ -68,9 +68,22 @@ def process_markdown_folder(folder_path):
                     DOCU[file[:-3]][0] = content.split("## ", 1)[-1].split("## ", 1)[0].strip()  # Content before first ##
 
     return DOCU
+    
+def flatten_Dict(nested_dict):
+    values = []
+    
+    def recurse(d):
+        for value in d.values():
+            if isinstance(value, dict):
+                recurse(value)
+            else:
+                values.append(value)
+    
+    recurse(nested_dict)
+    return values
+
 # %%
 DOCU = process_markdown_folder("docs")
-print (DOCU.keys())
-print (DOCU["bigpicture"][0])
-
+pure_texts=flatten_Dict(DOCU)
+print(pure_texts)
 # %%

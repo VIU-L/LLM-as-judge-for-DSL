@@ -4,58 +4,35 @@ from sklearn.metrics.pairwise import cosine_similarity
 import os
 import re
 import numpy as np
+from docProcessing import *
 
 # Load your embedding model
 model = SentenceTransformer('all-MiniLM-L6-v2')
-
 # %%
-def extract_titles_and_text(filepath):
-    """Extract titles and associated paragraph text from a markdown file."""
-    titles, paragraphs = [], []
-    with open(filepath, 'r', encoding='utf-8') as f:
-        content = f.read()
-        matches = re.finditer(r'(^## .+)', content, re.MULTILINE)
-        for match in matches:
-            title = match.group(0).strip()
-            start = match.end()
-            end = next((m.start() for m in matches if m.start() > start), None)
-            paragraph = content[start:end].strip() if end else content[start:].strip()
-            titles.append(title)
-            paragraphs.append(paragraph)
-    return titles, paragraphs
-
-def create_embeddings(folder_path):
-    """Create embeddings for all titles and paragraphs in markdown files in a folder and its subfolders."""
-    all_titles, all_paragraphs, embeddings = [], [], []
-    for root, _, files in os.walk(folder_path):
-        for filename in files:
-            if filename.endswith(".md"):
-                filepath = os.path.join(root, filename)
-                titles, paragraphs = extract_titles_and_text(filepath)
-                all_titles.extend(titles)
-                all_paragraphs.extend(paragraphs)
-                embeddings.extend(model.encode(titles, convert_to_tensor=True).to("cpu"))
-    return all_titles, all_paragraphs, embeddings
-
-def query_related_titles(question, all_titles, embeddings):
+def query_related_titles(question,pure_texts):
     """Retrieve titles related to the input question based on embeddings similarity."""
-    query_embedding = model.encode([question], convert_to_tensor=True)
+    query_embedding = model.encode([question], convert_to_tensor=True).to("cpu")
+    
+    embedded_texts = model.encode(pure_texts, convert_to_tensor=True).to("cpu")
   
-    similarities = cosine_similarity(query_embedding.to("cpu"), embeddings)
+    similarities = cosine_similarity(query_embedding,   embedded_texts)
     ranked_indices = similarities[0].argsort()[::-1]  # Sort in descending order
 
     # Return top related titles based on similarity score
-    top_titles = [all_titles[idx] for idx in ranked_indices[:5]]  # Adjust the number as needed
-    return top_titles
+    top_texts = [pure_texts[idx] for idx in ranked_indices[:5]]  # Adjust the number as needed
+    return top_texts
+
+
+
 
 # Example usage
 folder_path = 'docs'
-all_titles, all_paragraphs, embeddings = create_embeddings(folder_path)
-question = "argmax of a list"
-related_titles = query_related_titles(question, all_titles, embeddings)
+DOCU=process_markdown_folder(folder_path)
+pure_texts=flatten_Dict(DOCU)
+question = "argmax of a coloumn in a table"
+related_texts = query_related_titles(question, pure_texts)
 
-print("Related Titles:", related_titles)
-
+print("Related Titles:", related_texts)
 
 # %%
 if __name__ == "__main__":
