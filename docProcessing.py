@@ -56,7 +56,6 @@ def process_markdown_folder(folder_path):
     {filename: {subtitle: {0: text_before_first_subsubtitle, subsubtitle: text, "ALL": full_text_of_subtitle_section}}}.
     """
     DOCU = {}
-    pure_texts=[]
 
     for root, _, files in os.walk(folder_path):
         for file in files:
@@ -68,6 +67,20 @@ def process_markdown_folder(folder_path):
                     DOCU[file[:-3]][0] = content.split("## ", 1)[-1].split("## ", 1)[0].strip()  # Content before first ##
 
     return DOCU
+def process_reference_folder(folder_path):
+    
+    REFE = {}
+    pure_texts_ref=[]
+
+    for root, _, files in os.walk(folder_path):
+        for file in files:
+            if file.endswith(".md"):
+                file_path = os.path.join(root, file)
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    REFE[file[:-3]] = content
+                    pure_texts_ref.append(content)
+    return REFE,pure_texts_ref
     
 def flatten_Dict(nested_dict):
     values = []
@@ -83,7 +96,11 @@ def flatten_Dict(nested_dict):
     return values
 
 # %%
-DOCU = process_markdown_folder("docs")
-pure_texts=flatten_Dict(DOCU)
-print(pure_texts)
+if __name__ == "__main__":
+    
+    DOCU = process_markdown_folder("docs")
+    pure_texts=flatten_Dict(DOCU)
+
+    REFE,pure_text_ref=process_reference_folder('reference')
+    print(pure_text_ref[0])
 # %%
