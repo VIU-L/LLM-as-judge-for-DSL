@@ -15,11 +15,12 @@ def parse_markdown(file_content):
     current_content = []
     subtitle_content = []
     
+    
     for line in file_content.splitlines():
         if line.startswith("## "):  # New subtitle section
             # Save previous subtitle section
             if current_subtitle:
-                doc_structure[current_subtitle]["ALL"] = "\n".join(current_content).strip()
+                #doc_structure[current_subtitle]["ALL"] = "\n".join(current_content).strip()
                 doc_structure[current_subtitle][0] = "\n".join(subtitle_content).strip()
             current_subtitle = line[3:].strip()  # Subtitle text
             current_subsubtitle = None
@@ -64,7 +65,6 @@ def process_markdown_folder(folder_path):
                 with open(file_path, "r", encoding="utf-8") as f:
                     content = f.read()
                     DOCU[file[:-3]] = parse_markdown(content)
-                    DOCU[file[:-3]][0] = content.split("## ", 1)[-1].split("## ", 1)[0].strip()  # Content before first ##
 
     return DOCU
 def process_reference_folder(folder_path):
@@ -74,12 +74,13 @@ def process_reference_folder(folder_path):
 
     for root, _, files in os.walk(folder_path):
         for file in files:
-            if file.endswith(".md"):
+            if file.endswith(".md") and not(file=="_index.md" and folder_path=="reference"):
                 file_path = os.path.join(root, file)
                 with open(file_path, "r", encoding="utf-8") as f:
                     content = f.read()
                     REFE[file[:-3]] = content
                     pure_texts_ref.append(content)
+    
     return REFE,pure_texts_ref
     
 def flatten_Dict(nested_dict):
@@ -90,6 +91,7 @@ def flatten_Dict(nested_dict):
             if isinstance(value, dict):
                 recurse(value)
             else:
+                
                 values.append(value)
     
     recurse(nested_dict)
@@ -102,5 +104,5 @@ if __name__ == "__main__":
     pure_texts=flatten_Dict(DOCU)
 
     REFE,pure_text_ref=process_reference_folder('reference')
-    print(pure_text_ref[0])
+    # print(pure_text_ref[0])
 # %%
