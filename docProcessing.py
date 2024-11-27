@@ -2,6 +2,7 @@
 import os
 import re
 from collections import defaultdict
+import torch
 
 def parse_markdown(file_content):
     """
@@ -97,12 +98,23 @@ def flatten_Dict(nested_dict):
     recurse(nested_dict)
     return values
 
+import json
+from sentence_transformers import SentenceTransformer
+def save_embedding(pure_texts,path_emb,path_text):
+    model=SentenceTransformer('all-MiniLM-L6-v2')
+    embedded_texts = model.encode(pure_texts, convert_to_tensor=True).to("cpu")
+    torch.save(embedded_texts,path_emb)
+    with open(path_text, 'w') as f:
+        json.dump(pure_texts, f)
 # %%
 if __name__ == "__main__":
     
     DOCU = process_markdown_folder("docs")
     pure_texts=flatten_Dict(DOCU)
-
-    REFE,pure_text_ref=process_reference_folder('reference')
+    save_embedding(pure_texts,"embeddings\\doc_embedded.pt","embeddings\\doc_text.json")
+    
+    REFE,pure_text_ref=process_reference_folder('reference\\reference')
+    save_embedding(pure_text_ref,"embeddings\\ref_embedded.pt","embeddings\\ref_text.json")
+    
     # print(pure_text_ref[0])
 # %%
