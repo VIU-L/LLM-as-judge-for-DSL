@@ -55,7 +55,7 @@ def feed_to_RAG(question):
 import json
 # %%
 if __name__ == "__main__":
-    question="How to use argmax in Envision?"
+    question="Generate a table with Name and Price as columns."
     information=feed_to_RAG(question)
     print(information,len(information))
 # %%
