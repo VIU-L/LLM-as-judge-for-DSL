@@ -174,7 +174,7 @@ if __name__ == '__main__':
     # Get the date and time as YYYY-mm-dd-xx:xx
     input_challenge_folder = "mychallenges"
     folder_path = os.path.join("output","LLMasJudge")
-    output_path = os.path.join(folder_path, f"{datetime.now().strftime("%Y-%m-%d-%H-%M")}.md")
+    output_path = os.path.join(folder_path, f"{datetime.now().strftime('%Y-%m-%d-%H-%M')}.md")
     
     # Create the output folder
     if not os.path.exists(folder_path):
@@ -192,3 +192,4 @@ if __name__ == '__main__':
         challenge_paths = ["mychallenges/c010.md"]
         pipeline_score_allchallenge(challenge_paths, coder_personality, verbose=True)
         sys.stdout = sys.__stdout__  # Reset stdout to default
+# %%

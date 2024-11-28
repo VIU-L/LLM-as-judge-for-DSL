@@ -45,6 +45,7 @@ def text_to_feed(doc_embedded_path,ref_embedded_path,pure_doc,pure_ref,question,
     return toFeed
 # Example usage
 import warnings
+import json
 def feed_to_RAG(question):
     warnings.filterwarnings("ignore")
     with open(doc_text_path, "r") as file:
@@ -52,10 +53,38 @@ def feed_to_RAG(question):
     with open(ref_text_path, "r") as file:
         pure_ref = json.load(file)
     return text_to_feed(doc_embedded_path,ref_embedded_path,pure_doc,pure_ref,question)
-import json
+
+from myTools import read_file
+docu = read_file(os.path.join("docs","envision-brief.md"))
+RAGcoder_personality="You are a proficient coder in the Domain Specific Language called Envision. \
+    Your task is to generate response to the given challenge. \
+    Some challenges will ask you to generate Envision code,\
+    others will ask you to explain given code or answer questions related to the Envision language. \
+    Do not output any intermediate thinking or explanation, only give the final answer.\
+    Below is the basic documentation of Envision, which will be followed by several pieces of potentially relevant documentation:\
+    ### Documentation\n" + docu
+from LLMasJudge import client
+def RAG_pipeline(question,coder_personality=RAGcoder_personality):
+    information=feed_to_RAG(question)
+    print(information)
+    coder_prompt=RAGcoder_personality+information
+    coder_response = client.chat.completions.create(
+            model='gpt-3.5-turbo',
+            messages=[
+                {"role": "system", "content": coder_personality},
+                {"role": "user", "content": coder_prompt}
+            ],
+            max_tokens=1000,  # Adjust the number of tokens based on your needs
+            temperature=0.2,
+    )
+    stud_sentence=coder_response.choices[0].message.content
+    return stud_sentence
+
+    
+    
+    
 # %%
 if __name__ == "__main__":
-    question="Generate a table with Name and Price as columns."
-    information=feed_to_RAG(question)
-    print(information,len(information))
+    question="Define a table T with 5 names with corresponding score. Show the maximum of these 5 scores at the tile a1b2, together with the name that achieves this best score at c1d2."
+    print(RAG_pipeline(question))
 # %%
