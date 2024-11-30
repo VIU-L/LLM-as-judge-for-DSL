@@ -75,7 +75,7 @@ def RAG_pipeline(question,coder_personality=RAGcoder_personality):
                 {"role": "user", "content": coder_prompt}
             ],
             max_tokens=1000,  # Adjust the number of tokens based on your needs
-            temperature=0.2,
+            temperature=0.1,
     )
     stud_sentence=coder_response.choices[0].message.content
     return stud_sentence

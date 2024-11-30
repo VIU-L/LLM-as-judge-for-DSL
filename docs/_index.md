@@ -1,21 +1,11 @@
-+++
-title = "Envision Language"
-url = "language"
-description = "Envision is the Domain-Specific Language (DSL) engineered by Lokad for the specific purpose of the predictive optimization of supply chains. This document is not intended for complete programming beginners, but rather for an audience already familiar with basic programming patterns like Microsoft Excel formulas."
-weight = 1
-alwaysopen = false
-+++
-
+## Brief presentation of Envision Language
 Envision is the Domain-Specific Language (DSL) engineered by Lokad for the specific purpose of the predictive optimization of supply chains. This document is not intended for complete programming beginners, but rather for an audience already familiar with basic programming patterns like Microsoft Excel formulas.
 
 Envision has been designed since day 1 with one key feature in mind: the possibility to perform automated script rewrites if the syntax were to evolve. During the first 5 years of operations, Lokad performed around one hundred incremental rewrites. Those rewrites ensure that all our client companies benefit from the latest version of Envision without having to manually revise their scripts. There are many areas in Envision’s syntax that we plan to adjust in the future. In this documentation, the areas of evolution that have already been clearly identified are pointed out in the _Roadmap_ notes.
 
 Unlike many scripting languages, Envision focuses on delivering a high-degree of _correctness by design_, which means capturing as many issues as possible at **compile time** (the moment when the script is _compiled_) rather than **runtime** (the moment when the script is _run_). Capturing issues at compile time is preferable because whenever the amount of processed data is sizable, a runtime issue can take a long time (several minutes) to manifest itself causing productivity and production reliability problems. This documentation focuses on the _compile-time_ angles of Envision.
 
-**Table of contents**
-{{< toc >}}{{< /toc >}}
-
-## Your first script
+## Hello World program
 
 Every script must display at least _one_ dashboard _tile_. The following script illustrates how to generate a dashboard that contains a single tile displaying _Hello World!_.
 
@@ -28,7 +18,7 @@ All the statements that start with the keyword `show` indicate that a _tile_ wil
 
 The value `"Hello World!"` is called a **text literal**, a value that appears verbatim in the code. The operator `=` is the **assignment operator**.
 
-## Short names
+## Short names are allowed in the Scalar table
 
 Every variable belongs to a _table_. For concision and clarity, the table name can be omitted when a _scalar_ is involved. The script can be rewritten with the explicit table name:
 
@@ -43,7 +33,7 @@ The `Scalar` table is a built-in “ambient” table that always exists.
 
 Beside scalars, Envision supports another mechanism for short-name variables, i.e. omit table names, through a default implicit table. This mechanism is used with  _dimensions_. We will get back to the concept of dimensions in the following.
 
-## Comments
+## How to write comments
 
 Comments are introduced with the double-slash `//`. They can be put at the beginning of a line, or to the right of the line.
 
@@ -74,13 +64,11 @@ greeting = "Hello, world!"
 c = strlen(greeting)// Hover with your mouse on 'greeting', you get the message below.
 ```
 
-<!-- TODO: screenshot of the contextual display of the structured documentation. -->
-
 The Markdown syntax is used for the structured documentation. In the above example, when hovering the variable `greeting`, the word `bold` appears in bold due to the use of the `** .. **` delimiters. An structured documentation block can include multiple lines.
 
 Like comments, the structured documentation has no impact on the logic of the script.
 
-## Whitespaces
+## Sensitive to Whitespaces
 
 Envision is sensitive to whitespaces placed at the beginning of the lines. In this regard, its syntax is fairly similar to that of Python. For example, the following script is incorrect:
 
@@ -102,7 +90,7 @@ show summary "Another Tile!" a1b2 with
 
 The script above displays two text literals with a `summary` tile. Envision requires 2 whitespaces per level of indentation.
 
-## String interpolation
+## insert a value into string
 
 Envision supports what is commonly referred to as _text interpolation_ for its `text` values.
 
@@ -115,7 +103,7 @@ The syntax requires the variable to be included with a block `\{..}` (don't forg
 
 Envision does not support interpolating expressions, only variables.
 
-## Line structure
+## line breaks
 
 Envision is sensitive to line breaks. A script is divided into a number of _logical lines_. A logical line break typically indicates the end of a statement, but it can also indicate a new block - typically when the keyword `with` is used.
 
@@ -187,6 +175,8 @@ x = abs(-42)
 show label "\{x}"
 ```
 
+### Multi-argument functions
+
 More complex functions require several arguments. Most functions use **positional arguments** where arguments are specified according to their position in the function call. For example, the `startsWith()` function takes two text arguments and returns `true` when the text provided through the first argument starts with the text provided through the second argument:
 
 ```envision
@@ -196,12 +186,16 @@ show label "\{x}"
 
 Then, there are functions that take a varying number of arguments. Those functions are referred to as **variadic**. For example, the `max` function is variadic:
 
+### Variadic functions
+
 ```envision
 x = max(1, 3, 42, 12)
 show label "\{x}"
 ```
 
 Beware, the `max` function should not be confused with the `max` aggregator, which will also be detailed in the following.
+
+### Dot in function name
 
 Finally, certain advanced functions may contain a dot (.) in their name. This dot is only used for namespacing purposes, i.e. to clarify that multiple functions are closely related. However, there is no special semantic associated with the name suffix before the dot. For example, the function `lastForex()` returns the last known date, in Lokad, for a conversion rate between the currencies USD and EUR.
 
@@ -212,7 +206,7 @@ show label "\{x}"
 
 The function `lastForex()` is obviously semantically related to the function `forex()`, which provides conversion rates at any point in the past, but otherwise deciding to call this function `lastForex()` rather than `lastforex()` is a (somewhat) arbitrary choice from the Lokad teams.
 
-### Labeled arguments (advanced)
+### Labeled arguments VS positional arguments
 
 Some functions, but only some functions, require **labeled arguments** where arguments are specified via a label instead. Labeled arguments are newline-separated. Let's illustrate this with `forest.regress`:
 
