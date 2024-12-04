@@ -1,6 +1,7 @@
 import requests
 import sys
 
+
 class Tee:
     """
     A class that duplicates standard output to multiple outputs.
@@ -14,6 +15,7 @@ class Tee:
         flush():
             Flushes all file-like objects to ensure all data is written.
     """
+
     def __init__(self, *files):
         self.files = files
 
@@ -26,9 +28,11 @@ class Tee:
         for f in self.files:
             f.flush()
 
+
 def read_file(path):
     with open(path, 'r') as file:
         return file.read()
+
 
 def decompose_challenge(challenge):
     """
@@ -43,17 +47,19 @@ def decompose_challenge(challenge):
                 - filename (str): The path of the markdown reference document related in the folder `docs`.
                 - title (str): The title of the section related to the challenge in the reference file.
     """
-    question,prof_answer=challenge.split("\n\n# ANSWER\n\n")
-    prof_answer,references=prof_answer.split("\n\n# References\n\n")
-    if len(references)==0:
+    question, prof_answer = challenge.split("\n\n# ANSWER\n\n")
+    prof_answer, references = prof_answer.split("\n\n# References\n\n")
+    if len(references) == 0:
         return question, prof_answer, []
-    references=references.split("\n")
-    ref_pairs=[]
+    references = references.split("\n")
+    ref_pairs = []
     for ref in references:
-        if ref=="":continue
+        if ref == "":
+            continue
         filename, title = ref.split("|")
-        ref_pairs.append(['docs\\'+filename+".md",title])
+        ref_pairs.append(['docs\\'+filename+".md", title])
     return question, prof_answer, ref_pairs
+
 
 def extract_section(file_path, section_title):
     """
@@ -71,7 +77,7 @@ def extract_section(file_path, section_title):
         titles = section_title.split('|')
         current_level = 0
         title_levels = ["#", "##", "###", "####", "#####", "######"]
-        
+
         for line in file:
             stripped_line = line.strip()
             if current_level < len(titles) and stripped_line.startswith(title_levels[current_level]) and titles[current_level] in stripped_line:
@@ -79,23 +85,25 @@ def extract_section(file_path, section_title):
             if current_level == len(titles):
                 inside_section = True
                 continue
-            
+
             if inside_section:
                 if any(stripped_line.startswith(level) for level in title_levels[:current_level]):
                     break
             section_content.append(line)
 
-
     return ''.join(section_content).strip() if section_content else None
 
+
 def create_ref(ref_pairs):
-    ref_str=""
+    ref_str = ""
     for ref in ref_pairs:
-        section=extract_section(ref[0],ref[1])
-        ref_str+=section
+        section = extract_section(ref[0], ref[1])
+        ref_str += section
     return ref_str
 
 # send code to online compiler and check if it compiles
+
+
 def check_compilation(script):
     """
     # Example usage: check_compilation(extract_code(stud_sentence))
@@ -116,7 +124,8 @@ def check_compilation(script):
             else:
                 print("#### Compilation Failed")
                 for message in result["CompMessages"]:
-                    print(f"Error: {message['Text']} (Line: {message['Line']}, Start: {message['Start']}, Length: {message['Length']}, Severity: {message['Severity']})")
+                    print(f"Error: {message['Text']} (Line: {message['Line']}, Start: {
+                          message['Start']}, Length: {message['Length']}, Severity: {message['Severity']})")
                     return False
         else:
             print("Error: Unable to reach the compilation service.")
@@ -132,10 +141,11 @@ def extract_code(stud_sentence):
     lines = stud_sentence.strip().split('\n')
     return '\n'.join(lines[1:-1])
 
+
 if __name__ == "__main__":
     import shutil
     import re
-    
+
     def bold(text):
         return "\033[1m" + text + "\033[0m"
 
@@ -143,7 +153,7 @@ if __name__ == "__main__":
         """Remove ANSI escape codes from the text."""
         ansi_escape = re.compile(r'\x1B\[[0-?9;]*[mK]')
         return ansi_escape.sub('', text)
- 
+
     def center_text(text):
         width = shutil.get_terminal_size().columns
         stripped_length = len(strip_ansi_codes(text))
@@ -154,7 +164,7 @@ if __name__ == "__main__":
         left_padding = total_spaces // 2
         right_padding = total_spaces - left_padding
         return "-" * left_padding + text + "-" * right_padding
-    
+
     # Test the `decompose_challenge` function
     challenge_path = "mychallenges/c010.md"
     print("Reading challenge from: ", challenge_path)
