@@ -10,10 +10,10 @@ import re
 import numpy as np
 from docProcessing import *
 import torch
-doc_embedded_path = "embeddings\\doc_embedded.pt"
-ref_embedded_path = "embeddings\\ref_embedded.pt"
-doc_text_path = "embeddings\\doc_text.json"
-ref_text_path = "embeddings\\ref_text.json"
+doc_embedded_path = os.path.join("embeddings", "doc_embedded.pt")
+ref_embedded_path = os.path.join("embeddings", "ref_embedded.pt")
+doc_text_path = os.path.join("embeddings", "doc_text.json")
+ref_text_path = os.path.join("embeddings", "ref_text.json")
 
 # Load embedding model
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -72,6 +72,7 @@ def feed_to_RAG(question):
 
 
 docu = read_file(os.path.join("docs", "envision-brief.md"))
+
 RAGcoder_personality = "You are a proficient coder in the Domain Specific Language called Envision. \
     Your task is to generate response to the given challenge. \
     Some challenges will ask you to generate Envision code,\
@@ -84,7 +85,7 @@ RAGcoder_personality = "You are a proficient coder in the Domain Specific Langua
 def RAG_pipeline(question, coder_personality=RAGcoder_personality):
     information = feed_to_RAG(question)
     print(information)
-    coder_prompt = RAGcoder_personality+information
+    coder_prompt = question+information
     coder_response = client.chat.completions.create(
         model='gpt-3.5-turbo',
         messages=[
@@ -102,4 +103,5 @@ def RAG_pipeline(question, coder_personality=RAGcoder_personality):
 if __name__ == "__main__":
     question = "Define a table T with 5 names with corresponding score. Show the maximum of these 5 scores at the tile a1b2, together with the name that achieves this best score at c1d2."
     print(RAG_pipeline(question))
+
 # %%
