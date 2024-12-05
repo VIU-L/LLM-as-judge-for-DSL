@@ -87,7 +87,7 @@ def RAG_pipeline(question, coder_personality=RAGcoder_personality):
     print(information)
     coder_prompt = question+information
     coder_response = client.chat.completions.create(
-        model='gpt-3.5-turbo',
+        model='gpt-4o',
         messages=[
             {"role": "system", "content": coder_personality},
             {"role": "user", "content": coder_prompt}
@@ -101,7 +101,7 @@ def RAG_pipeline(question, coder_personality=RAGcoder_personality):
 
 # %%
 if __name__ == "__main__":
-    question = "Define a table T with 5 names with corresponding score. Show the maximum of these 5 scores at the tile a1b2, together with the name that achieves this best score at c1d2."
+    question = '''Define a table T with 5 names with corresponding score. Show the maximum of these 5 scores at the tile a1b2, together with the name that achieves this best score at c1d2.  '''
     print(RAG_pipeline(question))
 
 # %%

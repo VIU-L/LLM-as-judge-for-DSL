@@ -28,8 +28,8 @@ def parse_md_file(file_path):
             pre_subsubtitle_content = subtitle_section.split("###")[
                 0].split("\n", 1)
             if len(pre_subsubtitle_content) > 1 and pre_subsubtitle_content[1].strip():
-                results.append(f"{subtitle_title} &Content: {
-                               pre_subsubtitle_content[1].strip()}")
+                results.append(
+                    f"{subtitle_title} &Content: {pre_subsubtitle_content[1].strip()}")
 
             # Process each subsubtitle
             for subsubtitle_section in subsubtitles:
@@ -37,8 +37,8 @@ def parse_md_file(file_path):
                 subsubtitle_title = subsubtitle_lines[0]
                 subsubtitle_content = " ".join(subsubtitle_lines[1:]).strip() if len(
                     subsubtitle_lines) > 1 else "No content"
-                results.append(f"{subtitle_title} {subsubtitle_title} &Content: {
-                               subsubtitle_content}")
+                results.append(
+                    f"{subtitle_title} {subsubtitle_title} & Content: {subsubtitle_content}")
         else:
             # If no subsubtitles, include all content in the subtitle
             subtitle_content = " ".join(subtitle_lines[1:]).strip() if len(
