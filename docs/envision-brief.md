@@ -538,7 +538,7 @@ The **operators** by increasing order of precedence:
 * **Ranvar:** mixture ranvar ranvar.buckets sum
 * **Zedfunc:** sum
 
-### Functions
+### Functions available
 
 * **Mathematics:** abs arground ceiling cos exp expsmooth floor log loggamma loglikelihood.loglogistic loglikelihood.normal loglikelihood.negativebinomial loglikelihood.poisson max min percent random.binomial random.integer random.loglogistic random.negativebinomial random.normal random.poisson random.shuffle random.uniform ratio round roundnext sin sqrt tanh
 * **Text:** concat contains containsany containscount endswith escape field fieldcount fieldr indexof lowercase padleft parsedate parsenumber parsetime printtime replace startswith strlen substr text trim tryparsedate tryparsenumber tryparsetime tryparseweek uppercase

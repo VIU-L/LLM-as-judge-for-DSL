@@ -1,4 +1,6 @@
 # %%
+from transformers import AutoModel, AutoTokenizer
+from RAGdemander import RAGdemand
 from myTools import read_file
 from LLMasJudge import client
 import json
@@ -17,6 +19,7 @@ ref_text_path = os.path.join("embeddings", "ref_text.json")
 
 # Load embedding model
 model = SentenceTransformer('all-MiniLM-L6-v2')
+
 # %%
 
 
@@ -34,9 +37,9 @@ def query_related_titles(question, embedded_path, pure_texts, count=5):
     # embedded_texts = model.encode(pure_texts, convert_to_tensor=True).to("cpu")
 
     similarities = cosine_similarity(query_embedding,   embedded_texts)
-    similarities = similarities * np.array([penalize(len(pure_texts[q]))
-                                           # Penalize longer texts
-                                            for q in range(len(embedded_texts))])
+    similarities = similarities * \
+        np.array([penalize(len(pure_texts[q]))
+                 for q in range(len(embedded_texts))])
     # Sort in descending order
     ranked_indices = similarities[0].argsort()[::-1]
 
@@ -44,7 +47,7 @@ def query_related_titles(question, embedded_path, pure_texts, count=5):
     return ranked_indices[:count]
 
 
-def text_to_feed(doc_embedded_path, ref_embedded_path, pure_doc, pure_ref, question, countDocu=5, countRef=3):
+def text_to_feed(doc_embedded_path, ref_embedded_path, pure_doc, pure_ref, question, countDocu=5, countRef=5):
     related_texts_doc_idx = query_related_titles(
         question, doc_embedded_path, pure_doc, countDocu)
     related_texts_ref_idx = query_related_titles(
@@ -53,10 +56,10 @@ def text_to_feed(doc_embedded_path, ref_embedded_path, pure_doc, pure_ref, quest
     toFeed = ""
     for idx in related_texts_doc_idx:
         text = pure_doc[idx]
-        toFeed += "[[A piece of relevant grammar documentation:]]\n\n "+text+"\n\n"
+        toFeed += "[[A piece of grammar documentation:]]\n\n "+text+"\n\n"
     for idx in related_texts_ref_idx:
         text = pure_ref[idx]
-        toFeed += "[[A piece of relevant function documentation:]]\n\n "+text+"\n\n"
+        toFeed += "[[A piece of function documentation:]]\n\n "+text+"\n\n"
     return toFeed
 
 # Example usage
@@ -78,18 +81,29 @@ RAGcoder_personality = "You are a proficient coder in the Domain Specific Langua
     Some challenges will ask you to generate Envision code,\
     others will ask you to explain given code or answer questions related to the Envision language. \
     Do not output any intermediate thinking or explanation, only give the final answer.\
-    Below is the basic documentation of Envision, which will be followed by several pieces of potentially relevant documentation:\
-    ### Documentation\n" + docu
+    Below is the Basic Documentation of Envision, which will be followed by several pieces of potentially relevant documentation. Note that it is possible that some documentations pieces can be irrelevant or misleading, you need to judge yourself.\
+    ### Basic Documentation\n" + docu
 
 
 def RAG_pipeline(question, coder_personality=RAGcoder_personality):
-    information = feed_to_RAG(question)
+    # enhance by ragdemander
+    ideas = RAGdemand(question)
+    ideas = "".join(ideas)
+    information = ""
+    print(len(ideas))
+    # infos = 0
+    # for idea in ideas:
+    #     infos += 4
+    #     information += feed_to_RAG(idea)
+    information += feed_to_RAG(ideas)
+    print(len(information))
+    print(ideas)
     print(information)
-    coder_prompt = question+information
+    coder_prompt = question
     coder_response = client.chat.completions.create(
-        model='gpt-4o',
+        model='gpt-4o-mini',
         messages=[
-            {"role": "system", "content": coder_personality},
+            {"role": "system", "content": coder_personality+information},
             {"role": "user", "content": coder_prompt}
         ],
         max_tokens=1000,  # Adjust the number of tokens based on your needs
@@ -101,7 +115,7 @@ def RAG_pipeline(question, coder_personality=RAGcoder_personality):
 
 # %%
 if __name__ == "__main__":
-    question = '''Define a table T with 5 names with corresponding score. Show the maximum of these 5 scores at the tile a1b2, together with the name that achieves this best score at c1d2.  '''
+    question = '''Define a table T with 5 names with corresponding score. Show the maximum of these 5 scores at the tile a1b2, together with the name that achieves this best score at c1d2. '''
     print(RAG_pipeline(question))
 
 # %%
