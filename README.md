@@ -3,7 +3,7 @@
 
 Newly done:
 LLM RAGdemander, it is now connected to RAGsearcher  
-results: RAGdemander ok in proposing relevant ideas, but the transformer cannot correctly match to the paragraph.  
+results: RAGdemander ok in proposing relevant ideas, but the transformer cannot robustly match to the paragraph.  
 potential solution: point 4 in ToDo  
 
 ToDo:  
