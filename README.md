@@ -8,6 +8,6 @@ potential solution: point 4 in ToDo
 
 ToDo:  
 3. fix and refine LLM judge    
-4. split exceedingly-long paragraphs in documentation; write a concise summary of every paragraph in documentation, eg 'how to use argmax'; once done we will only match LLMdemander-proposed Ideas on the keywords  
+4. split exceedingly-long paragraphs in documentation; write a concise summary of every paragraph in documentation, eg 'how to use argmax'; once done we will match LLMdemander-proposed Ideas only on the summary  
 5. Change model / transformer to exploit specific coding expertise  
 6. After a 1st output, if does not pass compilation, retract doc for each error point. (how to detect?)   
