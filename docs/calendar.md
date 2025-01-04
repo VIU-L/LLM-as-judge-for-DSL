@@ -9,7 +9,7 @@ Historical data is ubiquitous in enterprise software. Envision provides several 
 **Table of contents**
 {{< toc >}}{{< /toc >}}
 
-## Calendar types
+## Calendar types to store a date, week or month
 
 Envision has three calendar data types: `date`, `week` and `month`. These data types don’t have literals (unlike numbers) but can be instantiated via built-in functions, as illustrated below:
 
@@ -138,7 +138,7 @@ show table "Time of day" a1b2 with
 
 In the above script, the date gets parsed as _Jan 2nd_ (instead of _Jan 1st_) due to the specified timezone. Correspondingly, the time of day fraction is parsed as 0.21, which matches the date of Jan 2nd.
 
-## Calendar tables
+## Calendar tables; time series
 
 Calendar tables facilitate the processing of historical dates by offering a mechanism to “densify” the sequences. Indeed, processing and visualizing time-series is typically easier when the time-series are dense.
 
@@ -253,7 +253,7 @@ The calendar tables cannot be defined with the usual `table T = with ..` syntax.
 
 At this point, there are still a few Envision behaviors that we haven’t covered in regards to the examples introduced in this section. These behaviors will be gradually clarified in the subsections that follow.
 
-### Unfiltering with ‘span’
+### Unfiltering with keyword ‘span’
 
 Unfiltering is a mechanism introduced by Envision to “densify” the calendar dimensions. This mechanism does the opposite of filtering: it _adds_ elements to the table of interest. Unfiltering is usually performed implicitly via `read` statements. However, unfiltering can be performed explicitly with the keyword `span`. Understanding _unfiltering_ facilitates the understanding of some of the `read` behaviors, which are covered in the next section.
 
@@ -461,7 +461,7 @@ In the above script, the filter is applied on `month`, the primary dimension of 
 
 The two tables `Week` and `Month` depend on the table `Day`. When `Month` is filtered, then the corresponding `Day` lines are filtered to. In turn, if there is not a single `Day` line matching a given `Month` line, then this line gets filtered out as well.
 
-## Calendar cross tables
+## Calendar cross tables; Concurrent time-series
 
 Concurrent time-series are of prime interest. Envision approaches those series through the angle of the cross tables, which represent a Cartesian product between a calendar table and another table. The following script builds a mock set of time-series, and puts them on display via Envision’s slicing mechanic:
 
@@ -489,7 +489,7 @@ In the above script, the table `P` is defined as a cross table between `Products
 
 The operations on a (calendar) cross table follow the usual principles of Envision, applying the same operations over multiple lines at once. However, the workload for the Envision runtime is strictly proportional to the size of the calendar table. For example, a cross table between 1 million SKUs and 2,000 days yields 2 billion lines. As a rule of thumb, when dealing with large cross tables, it is appropriate to try to filter the dates to avoid needless processing.
 
-## Lag operator
+## Lag operator; shifting the data time-wise
 
 The operation of shifting the data time-wise is referred to as “lagging”. Lagging is of high interest for situations that involve delays to be modelled. Envision has a built-in lag operator. In order to introduce to this operator, let’s revisit the lookup operator in the context of the calendar tables:
 
@@ -540,7 +540,7 @@ The amount of lag is expressed by the periodic unit implicitly attached to the c
 
 The syntax of the lag operator is similar to that of the lookup, as brackets are used in both situations. However, the type of argument differs. In the case of the lookup, the type is aligned with the primary dimension of the table, i.e. `date`, `week` and `month`. In the case of the lag, the type of argument is a scalar number.
 
-## Over aggregation
+## Rolling time window with keyword 'over'; moving average
 <!-- TODO: screenshots of the linecharts -->
 Beyond the lag, it’s frequently useful to perform calculations over a rolling time window. For example, the moving average forecast is one of the simplest use cases of the “rolling window” perspective. Envision provides built-in support for those operations with the `over` aggregation. Let’s consider a 7-day rolling average:
 
@@ -632,6 +632,3 @@ show linechart "Series" a1d3 with
   Day.Latest { color: red }
 ```
 
-## Video tutorial
-
-<iframe width="640" height="360" sandbox="allow-same-origin allow-scripts allow-popups" src="https://tube.lokad.com/videos/embed/0a8ca1ee-dd0e-492c-a450-f50fb1e4dc39?title=0&warningTitle=0" frameborder="0" allowfullscreen></iframe>
