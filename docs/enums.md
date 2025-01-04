@@ -9,7 +9,7 @@ Enums are complex data types intended to deliver better compute performance and 
 **Table of contents**
 {{< toc >}}{{< /toc >}}
 
-## Extension enums
+## Define an Enum explicitly to store fixed text values
 
 An `enum` can be defined inline while explicitly listing all the allowed text values.
 This can be done with a `table enum` statement as illustrated by:
@@ -77,7 +77,7 @@ As a rule of thumb, once the data preparation is complete, we recommend using en
 
 _Advanced remark:_ Enums represent a special case of what is typically known as a _generic_ type in languages like C# or Java. They are the sole complex data type supported by Envision. The intent behind the Envision enums is to provide type safety to its relational algebra. Envision enums are similar in essence to the PostgreSQL and MySQL enums.
 
-## Comprehension enums
+## Define an Enum from a existing table
 
 An `enum` can be defined inline by referencing the values found a vector. This can be done with a `table enum` statement as illustrated by:
 
@@ -103,7 +103,7 @@ In the above script, an `enum` named `Countries` is defined through an assignemm
 
 The syntax is essentially similar to the one used for extension enum in the previous section.
 
-## Text type erasure
+## Erasing the original text after creating an Enum
 
 A vector of type `text` can be erased in favor of an `enum` type replacement. This erasure represents an exception to the general Envision rule that prevents an existing vector gaining a new type after being created.
 
@@ -125,7 +125,7 @@ In the above script, the vector `Factories.Country` is created a `text` vector. 
 
 This exception to the general rule of type immutability in Envision is motivated by the frequent use-case where raw data is first read as `text` and second converted as an `enum` after completing miscellaneous preparation steps. Indeed, once the data preparation is complete, the intent is to remove entirely the initial `text` vector, letting a strongly-typed `enum` vector takes its place. This syntax removes the possibility to inadvertently access the original untyped `text` vector after the introduction of a stronger-typed alternative.
 
-## Matching and filtering
+## Matching and filtering an Enum
 
 Enums benefit from matching and filtering capabilities that take advantage of their strongly typed nature. The following script illustrates the matching syntax:
 
@@ -221,7 +221,7 @@ where fr == Details.Label // auto conversion to 'text(fr)'
 
 In particular, this syntax alleviates the need to call the `text()` function on the enum value. Under the hood, the Envision runtime attempts to avoid an actual conversion of the `enum` value to its corresponding `text` value in order to minimize the performance overhead.
 
-## Enum-typed reads
+## Read and write an Enum from file 
 
 Input files read by an Envision script can declare a column to be of an `enum` type. Moreover, the enums themselves can be defined based on the data observed in input files.  In order to illustrate the affinity between `enum` and the `read` statements, let’s start by producing a flat file:
 
@@ -295,7 +295,7 @@ In the above script, the syntax `table enum Countries` is used to introduce the 
 
 When a `read` block is used to declare an `enum` type, there are no checks involved beyond the capacity limits (see below): the `enum` values are the distinct values observed in the input file. If the input file contains incorrect enum values, those values end up in the definition of the `enum`. However, in practice, a first `read` block can be used to declare an `enum` (this file is assumed to be correct), while a second `read` block consumes the `enum` (the integrity of this file is checked against the first one).
 
-## Primary dimensions
+## Using an Enum as Primary dimension of a table
 
 The creation of an enum leads to the creation of a table sharing the same name as its originating enum. This table’s primary dimension has the same type as the enum itself and can be named explicitly:
 
@@ -358,7 +358,7 @@ show scalar "Is FR selected?" with Countries.Selected["FR"]
 
 This automatic conversion is a syntactic sugar shortening lookups performed over enum tables.
 
-## Secondary dimensions
+## Using an Enum as Secondary dimension of a table
 
 The enum-typed reads offer the possibility to attach secondary dimensions to the table being read. Let’s produce a minimal flat file illustrating a list of SKUs, each SKU having a location and product reference:
 
