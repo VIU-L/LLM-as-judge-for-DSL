@@ -1,11 +1,11 @@
 # %%
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModel, AutoTokenizer#
 from RAGdemander import RAGdemand
 from myTools import read_file
 from LLMasJudge import client
 import json
 import warnings
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer 
 from sklearn.metrics.pairwise import cosine_similarity
 import os
 import re
@@ -16,6 +16,9 @@ doc_embedded_path = os.path.join("embeddings", "doc_embedded.pt")
 ref_embedded_path = os.path.join("embeddings", "ref_embedded.pt")
 doc_text_path = os.path.join("embeddings", "doc_text.json")
 ref_text_path = os.path.join("embeddings", "ref_text.json")
+
+# Load embedding model
+
 # %%
 
 
@@ -77,7 +80,7 @@ RAGcoder_personality = "You are a proficient coder in the Domain Specific Langua
     Some challenges will ask you to generate Envision code,\
     others will ask you to explain given code or answer questions related to the Envision language. \
     Do not output any intermediate thinking or explanation, only give the final answer.\
-    Below is the Basic Documentation of Envision, which will be followed by several pieces of potentially relevant Auxiliary Documentation. Note that it is possible that some documentations pieces can be irrelevant or misleading, you need to judge yourself.\
+    Below is the Basic Documentation of Envision, which will be followed by several pieces of potentially relevant documentation. Note that it is possible that some documentations pieces can be irrelevant or misleading, you need to judge yourself.\
     ### Basic Documentation\n" + docu
 
 
