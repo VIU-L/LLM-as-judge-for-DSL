@@ -1,5 +1,5 @@
 # %%
-from transformers import AutoModel, AutoTokenizer#
+from transformers import AutoModel, AutoTokenizer
 from RAGdemander import RAGdemand
 from myTools import read_file
 from LLMasJudge import client
@@ -80,6 +80,7 @@ RAGcoder_personality = "You are a proficient coder in the Domain Specific Langua
     Some challenges will ask you to generate Envision code,\
     others will ask you to explain given code or answer questions related to the Envision language. \
     Do not output any intermediate thinking or explanation, only give the final answer.\
+    Your code must be commented and well-structured.\
     Below is the Basic Documentation of Envision, which will be followed by several pieces of potentially relevant documentation. Note that it is possible that some documentations pieces can be irrelevant or misleading, you need to judge yourself.\
     ### Basic Documentation\n" + docu
 
@@ -116,5 +117,11 @@ def RAG_pipeline(question, coder_personality=RAGcoder_personality):
 if __name__ == "__main__":
     question = '''Define a table T with 5 names with corresponding score. Show the maximum of these 5 scores at the tile a1b2, together with the name that achieves this best score at c1d2. '''
     print(RAG_pipeline(question))
+
+# %%
+if __name__ == "__main__":
+    question = '''Define a ranvar corresponding to a poisson probability distribution and display it as a scalar'''
+    print(RAG_pipeline(question))
+
 
 # %%
