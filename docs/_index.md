@@ -274,7 +274,7 @@ Call options are not available to _pure_ functions that just map scalar argument
 
 _Advanced remark_: Call options often indicate the level of data parallelism achievable by the underlying function implementation. Some options, like `by`, tend to indicate that data can be partitioned, offering the possibility to speed-up the computation by processing groups independently. Some options, like `scan`, tend to indicate that the data has to be processed in sequence, preventing data parallelism.
 
-## Scoping and tuples
+## Scoping
 
 A variable’s scope is the section that represents the portion of the code where the variable can be used once the variable is declared. Envision provides several scoping mechanisms. The simplest scoping mechanism works as follows:
 
@@ -312,7 +312,7 @@ Scalar.greeting = with
 
 show label Scalar.greeting
 ```
-
+## Scoping using tuple
 Then, a `with` scope can be used to return multiple variables in what is known as a **tuple**, a collection that is ordered and that has its length fixed at compile time. The script can be rewritten as:
 
 ```envision
@@ -355,7 +355,7 @@ show label "\{g1} \{g2}"
 
 The `with` block in the above reference includes the variable `y`, which is defined prior to the block.
 
-### Discards
+### Discarding unuseful elements in a tuple
 
 When calling a function that returns a tuple (or when deconstructing a dimension), some of the elements may not be used. This triggers an _unused assignment_ warning. In order to clarify that the _intent_ is to ignore the element, a _discard_ should be used. One indicates that a variable is a discard by assigning it the underscore (`_`) as its name. 
 
@@ -377,7 +377,7 @@ Envision offers specific capabilities to deal with files that are not using UTF-
 
 The primary restriction is the variable names that are restricted to the latin alphabet, primarily to eliminate the entire class of issues related to the presence of homoglyphs (characters that appear identical or very similar in shape but may have differing meanings, for example the capital letter `O` and the digital zero `0`, or `1` and `l`) in code.
 
-## Primitive data types
+## Hierarchy of data types
 
 Every variable is originally constructed based on one or several primitive **data types**, or _types_ for short. These types reflect the nature of the information (e.g. text or number). In Envision, all types are identified and validated at compile time, i.e. Envision is a _strongly typed_ language. Non-primitive types include, for example, tuples that are a collection of types. In this section, all the primitive data types are reviewed. All of the more complicated types processed by Envision are built on top of those primitive types.
 
@@ -447,7 +447,7 @@ show label "\{x}" // displays '42'
 
 _Advanced remark_ :  As Envision has no side effects, all logical operators could be interpreted as short circuit operators. While Lokad may take advantage of short-circuiting those operators for performance, it cannot be depended upon. For example `a > 0 and b / a > 0`  will fail because `and` is not guaranteed to short-circuit.
 
-### Ordinal
+### Ordinal, dimension variable, define a table by explicit dimension
 
 Ordinals represent **opaque** identifiers used by Envision to identify lines within a table. Most notably, _dimensions_ as defined by Envision are frequently typed through ordinals when the dimension has to be auto generated. While, under the hood, ordinals are ubiquitous because it’s through them that many relationships are implemented, direct interactions with ordinals are relatively infrequent.
 
@@ -463,7 +463,7 @@ In the script above, the dimension variable `pid` is of the ordinal type. The `p
 
 In Envision, little can be done with ordinals as they cannot be displayed and do not interact with other data types. Nevertheless, ordinals can be used in aggregation as arguments for the `by` option. They can also be used in table comprehensions. These points will be detailed in the following.
 
-### Ranvar
+### Ranvar, random variable over Z
 
 Ranvars represent random variables over Z (integers, positive and negative). Ranvars are intended for probabilistic reasoning about future uncertainties, such as uncertain demand, uncertain lead times, uncertain returns, etc.
 
@@ -475,7 +475,7 @@ The script here above displays a Poisson distribution of parameter _lambda = 3_.
 
 _Advanced remark_ : Under the hood, ranvars are nontrivial data structures. The naive histogram representation does not yield a satisfying performance, as tail probabilities can spread far into the integer spectrum, e.g. millions of units. Our ranvar implementation delivers strict upper bounds on both memory and CPU consumption. The unavoidable loss of precision and resolution is kept low enough to be inconsequential in supply chain situations.
 
-### Zedfunc
+### Zedfunc, real-valued functions Z->R
 
 Zedfuncs represent functions from Z (integers) to R (real numbers). Zedfuncs are typically intended to represent the economic score of a potential decision, such as producing 0, 1, 2, 3, … units and assessing economic returns for every option.
 
@@ -503,7 +503,7 @@ As illustrated above, the `markdown` type used a triple-quote `"""` syntax to de
 
 _Advanced remark_: Under the hood, we follow the CommonMark specification for Markdown. Also, we sanitize the Markdown to avoid injection attacks - which would still require _script editor_ privileges - which could occur though naive Markdown rendering.
 
-### Literals
+### Literals are by default in the Scalar table
 
 Several data types benefit from literals, namely `text`, `number`,`boolean` and `markdown`. When written plainly these literals belong to the `Scalar` table, as illustrated by:
 
@@ -527,7 +527,7 @@ Any table can be used as a prefix for a literal, not just the `Scalar` table. Wh
 
 Beware, in `Scalar.42.0` the first dot and the second one don’t have the same semantic. The first dot indicates the table prefix, which is `Scalar` in the example above. The second dot is the decimal separator used for floating point numbers.
 
-## Dashboards and tiles
+## Displaying things on Dashboard using tile
 
 The tile is the fundamental display block in Envision. Envision supports many types of tiles such as barcharts, linecharts, tables, etc. A script can contain many tiles that will all be rendered in the same single-page dashboard. Nearly all tiles receive a _table_ as input, introduced by the keyword `with` that renders this table in one form or another. For example, the following script displays two tiles:
 
@@ -607,7 +607,7 @@ show table "My Products" with
 
 In this script, the scalar text literal is implicitly broadcast to the `Products` table. In the previous script, there was also a broadcast, but it was an explicit one with `Products.Size = "small"`. Here, the `table` tile leverages a _common table_ mechanism that identifies which table should be used, `Products` in this case, and broadcasts accordingly all vectors that do not already belong to this common table. We will revisit this aspect in the following.
 
-## Positioning tiles
+## Fix the position when displaying a tile on Dashboard
 
 Tiles can be positioned within a dashboard by leveraging a grid layout similar to the one used in most spreadsheets, with columns identified by letters and lines identified by numbers. Tiles are positioned through code, however, Lokad also features a visual editor precisely intended to place and style tiles in a more convenient way than manual adjustments of constants in code. The following script illustrates the grid layout of Envision:
 
@@ -644,7 +644,7 @@ In the following, most of our script examples omit the position argument for the
 
 Capitalization of the positions is ignored, thus `b1c2` is identical to `B1C2`. The maximum number of columns is 26, i.e. `z` is the largest acceptable column identifier, while the maximum number of lines is 999. These values are (almost) absurdly large. As a rule of thumb, dashboards that exceed the column `h` or exceed the line 100 tend to be largely unreadable.
 
-## Styling tiles
+## Fix the style when displaying a tile
 
 The appearance of tiles can be controlled through a sublanguage referred to as StyleCode in Envision. StyleCode segments are introduced by curly brackets `{` and `}` and use semicolons as delimiters. A StyleCode snippet includes a list of **rules**, each rule starts with a **property** (on the left), followed by `:` and ends with a **value**. The following script illustrates StyleCode:
 
