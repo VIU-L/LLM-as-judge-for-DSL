@@ -4,8 +4,11 @@ import json
 import os
 import re
 
+model = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-dot-v1')
 
 # Function to parse a single .md file
+
+
 def parse_md_file(file_path):
     results = []
     with open(file_path, "r", encoding="utf-8") as file:
@@ -60,11 +63,13 @@ def parse_folder(folder_path):
 
 
 def save_embedding(pure_texts, path_emb, path_text):
-    model = SentenceTransformer('all-MiniLM-L6-v2')
-    embedded_texts = model.encode(pure_texts, convert_to_tensor=True).to("cpu")
+    clean_texts = [re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+                   for text in pure_texts]
+    embedded_texts = model.encode(
+        clean_texts, convert_to_tensor=True).to("cpu")  # embedded text is clean of code
     torch.save(embedded_texts, path_emb)
     with open(path_text, 'w') as f:
-        json.dump(pure_texts, f)
+        json.dump(pure_texts, f)  # text is complete
 
 
 # %%
