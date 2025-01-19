@@ -32,6 +32,7 @@ from apikey import api_key
 from myTools import *
 import os
 import sys
+import RAGsearcher_judged
 
 client = OpenAI(api_key=api_key)
 
@@ -87,17 +88,7 @@ def pipeline_verify(challenge, coder_personality, judge_personality=judge_person
 
     # generate an answer and compile the student's answer until it compiles or the number of tries is reached
     for compile_try in range(1, n_tries+1):
-        coder_prompt = question
-        coder_response = client.chat.completions.create(
-            model='gpt-3.5-turbo',
-            messages=[
-                {"role": "system", "content": coder_personality},
-                {"role": "user", "content": coder_prompt}
-            ],
-            max_tokens=1000,  # Adjust the number of tokens based on your needs
-            temperature=0.2,
-        )
-        stud_sentence = coder_response.choices[0].message.content
+        stud_sentence = RAGsearcher_judged.RAG_pipeline(question)
 
         if verbose:
             print('### compile try:', compile_try)
