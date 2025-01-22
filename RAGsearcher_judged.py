@@ -121,7 +121,7 @@ def RAG_pipeline(question, coder_personality=RAGcoder_personality):
     # Generate response using user question and information
     coder_prompt = question
     coder_response = client.chat.completions.create(
-        model='gpt-4o-mini',
+        model='gpt-3.5-turbo',
         messages=[
             {"role": "system", "content": coder_personality+information},
             {"role": "user", "content": coder_prompt}

@@ -1,29 +1,5 @@
 """
-A py copy of the original LLMasJudge.ipynb to avoid merging conflicts.
-It uses OpenAI's GPT-3.5-turbo model to generate and judge responses based on predefined personalities and rules.
-Functions:
-----------
-- pipeline_verify:
-    1. Generate a student's response to a given challenge.
-    2. Check the response for compilation errors. if it does not compile, go back to step 1.
-    2. Verity the response using a judge.
-    3. Then a verifier converts the judge's decision to a binary output.
-
-- pipeline_score_allchallenge:
-    Test on a list of challenges by verifying each one using the pipeline_verify function.
-    It prints the number of correct responses and the overall percentage accuracy.
-
-Variables:
-----------
-- client: An instance of the OpenAI client initialized with the provided API key.
-- docu: The documentation content read from the "envision-brief.md" file.
-- coder_personality: A string defining the coder's personality and task.
-- judge_personality_teacherAuthority: A string defining the judge's personality and rules for evaluating responses.
-
-Usage:
-------
-- The script can be run directly, and it will score a predefined list of challenges.
-- The main function to execute is `pipeline_score_allchallenge`, which takes a list of challenge indexes and the coder personality as input.
+A code adapted from LLMasJudge.py to judge the RAGsearcher model.
 """
 
 # %% Initialization
@@ -88,7 +64,7 @@ def pipeline_verify(challenge, coder_personality, judge_personality=judge_person
 
     # generate an answer and compile the student's answer until it compiles or the number of tries is reached
     for compile_try in range(1, n_tries+1):
-        stud_sentence = RAGsearcher_judged.RAG_pipeline(question)
+        stud_sentence = RAGsearcher_judged.RAG_pipeline(question) # Generate the student's answer from RAGsearcher model
 
         if verbose:
             print('### compile try:', compile_try)
@@ -111,7 +87,7 @@ def pipeline_verify(challenge, coder_personality, judge_personality=judge_person
     judge_prompt = "### QUESTION: "+question+"\n### PROFESSOR ANSWER: " + \
         prof_answer+"\n### STUDENT ANSWER: "+stud_sentence
     judge_response = client.chat.completions.create(
-        model='gpt-3.5-turbo',
+        model='gpt-4o-mini',
         messages=[
             {"role": "system", "content": judge_personality+ref_str},
             {"role": "user", "content": judge_prompt}
@@ -150,23 +126,26 @@ def pipeline_score_allchallenge(paths, coder_personality, verbose=True):
     challenges = [read_file(path) for path in paths]
     score = 0
     compilation_success = 0
+    results_array = [f"{i}: Fail" for i in range((len(challenges)))]
     for i in range(len(challenges)):
         challenge = challenges[i]
         print('## verifying challenge ' + paths[i], '\n')
         _, judge_sentence, judge_decision = pipeline_verify(
             challenge, coder_personality, verbose=verbose)
         if (judge_sentence == 'too many compilation failures!'):
+            results_array[i] = f"{i}: Compilation fail"
             continue
         compilation_success += 1
         if (judge_decision):
             score += 1
+            results_array[i] = f"{i}: Success"
         print('\n')
 
     print('## Compilation success rate:\n'+str(compilation_success)+' out of ' +
           str(len(challenges))+', '+str(compilation_success/len(challenges)*100)+'%')
     print('## Accuracy:\n'+str(score)+' out of ' +
           str(len(challenges))+', '+str(score/len(challenges)*100)+'%')
-
+    print('## Results array:\n', results_array)
 
 # %% main
 if __name__ == '__main__':
@@ -192,7 +171,7 @@ if __name__ == '__main__':
         #          for filename in os.listdir(input_challenge_folder)
         #          if filename.endswith('.md') and filename!='description.md']
 
-        challenge_paths = ["mychallenges/c000.md", "mychallenges/c001.md", "mychallenges/c002.md", 
+        challenge_paths = ["mychallenges/c000.md", "mychallenges/c001.md", "mychallenges/c002.md",
                            "mychallenges/c003.md", "mychallenges/c004.md", "mychallenges/c005.md",
                            "mychallenges/c006.md", "mychallenges/c007.md", "mychallenges/c008.md",
                            "mychallenges/c009.md", "mychallenges/c010.md", "mychallenges/c011.md",

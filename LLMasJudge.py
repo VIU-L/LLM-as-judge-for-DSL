@@ -120,7 +120,7 @@ def pipeline_verify(challenge, coder_personality, judge_personality=judge_person
     judge_prompt = "### QUESTION: "+question+"\n### PROFESSOR ANSWER: " + \
         prof_answer+"\n### STUDENT ANSWER: "+stud_sentence
     judge_response = client.chat.completions.create(
-        model='gpt-3.5-turbo',
+        model='gpt-4o-mini',
         messages=[
             {"role": "system", "content": judge_personality+ref_str},
             {"role": "user", "content": judge_prompt}
@@ -159,22 +159,26 @@ def pipeline_score_allchallenge(paths, coder_personality, verbose=True):
     challenges = [read_file(path) for path in paths]
     score = 0
     compilation_success = 0
+    results_array = [f"{i}: Fail" for i in range((len(challenges)))]
     for i in range(len(challenges)):
         challenge = challenges[i]
         print('## verifying challenge ' + paths[i], '\n')
         _, judge_sentence, judge_decision = pipeline_verify(
             challenge, coder_personality, verbose=verbose)
         if (judge_sentence == 'too many compilation failures!'):
+            results_array[i] = f"{i}: Compilation fail"
             continue
         compilation_success += 1
         if (judge_decision):
             score += 1
+            results_array[i] = f"{i}: Success"
         print('\n')
 
     print('## Compilation success rate:\n'+str(compilation_success)+' out of ' +
           str(len(challenges))+', '+str(compilation_success/len(challenges)*100)+'%')
     print('## Accuracy:\n'+str(score)+' out of ' +
           str(len(challenges))+', '+str(score/len(challenges)*100)+'%')
+    print('## Results array:\n', results_array)
 
 
 # %% main
@@ -201,7 +205,7 @@ if __name__ == '__main__':
         #          for filename in os.listdir(input_challenge_folder)
         #          if filename.endswith('.md') and filename!='description.md']
 
-        challenge_paths = ["mychallenges/c000.md", "mychallenges/c001.md", "mychallenges/c002.md", 
+        challenge_paths = ["mychallenges/c000.md", "mychallenges/c001.md", "mychallenges/c002.md",
                            "mychallenges/c003.md", "mychallenges/c004.md", "mychallenges/c005.md",
                            "mychallenges/c006.md", "mychallenges/c007.md", "mychallenges/c008.md",
                            "mychallenges/c009.md", "mychallenges/c010.md", "mychallenges/c011.md",
