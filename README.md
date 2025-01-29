@@ -6,7 +6,7 @@ Newly done:
 combined search, propose [function names & grammar chapter names].  
 *new RAGsearcher*: (please use RAGsearcher_v2)   
 For the proposed functions, directly concatenate their documentation.  
-For (and only for) the proposed grammars, do embedding match.  
+For (and only for) the proposed grammar chapters, do embedding match among all their pieces.  
 
 Results: argmax ok :)  
 
