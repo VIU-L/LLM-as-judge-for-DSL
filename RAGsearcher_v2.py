@@ -12,6 +12,7 @@ import re
 import numpy as np
 from docProcessing import *
 import torch
+from chapterTitleFinder import *
 doc_embedded_path = os.path.join("embeddings", "doc_embedded.pt")
 ref_embedded_path = os.path.join("embeddings", "ref_embedded.pt")
 doc_text_path = os.path.join("embeddings", "doc_text.json")
@@ -23,12 +24,13 @@ def penalize(x):
     return 100/(1+np.exp(0.003*(x-700)))
 
 
-def query_related_titles(question, embedded_path, pure_texts, count=5):
+def query_related_titles(question, embedded_path, pure_texts, valid_indexes, count=5):
     """Retrieve titles related to the input question based on embeddings similarity."""
     query_embedding = model.encode(
         [question], convert_to_tensor=True).to("cpu")
     # Load embedded texts
     embedded_texts = torch.load(embedded_path)
+    embedded_texts = embedded_texts[valid_indexes]
 
     # embedded_texts = model.encode(pure_texts, convert_to_tensor=True).to("cpu")
 
@@ -38,36 +40,57 @@ def query_related_titles(question, embedded_path, pure_texts, count=5):
                  for q in range(len(embedded_texts))])
     # Sort in descending order
     ranked_indices = similarities[0].argsort()[::-1]
-
+    original_indices = [valid_indexes[i] for i in ranked_indices]
     # Adjust the number as needed
-    return ranked_indices[:count]
+    return original_indices[:count]
 
 
-def text_to_feed(doc_embedded_path, ref_embedded_path, pure_doc, pure_ref, question, countDocu=2, countRef=2):
-    related_texts_doc_idx = query_related_titles(
-        question, doc_embedded_path, pure_doc, countDocu)
-    related_texts_ref_idx = query_related_titles(
-        question, ref_embedded_path, pure_ref, countRef)
+def text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDocu=5):
+
+    # ideas are formulated as eg. ['- Relational algebra', '- Natural joins', '- Table comprehensions', '- Table sizes', '- Dashboards', '+ extend.range', '+ concat', '+ sum', '+ show', '+ text'] where - signifies grammar and + signifies function
+
+    # all paragraphs in pure_doc starts with &Title: (title).
 
     toFeed = ""
-    for idx in related_texts_doc_idx:
+    print(ideas)
+    valid_doc_paragraph_indexes = []
+    for idea in ideas:
+        title = idea[2:]
+        if idea.startswith('-'):
+            chaptertitle = findtitle[title]
+            valid_doc_paragraph_indexes = valid_doc_paragraph_indexes+[i for i, paragraph in enumerate(
+                pure_doc) if paragraph.startswith(f"&Title: {chaptertitle}")]
+    print("eligible texts:", len(valid_doc_paragraph_indexes))
+    original_indexes = query_related_titles(
+        question, doc_embedded_path, pure_doc, valid_doc_paragraph_indexes, countDocu)
+    for idx in original_indexes:
         text = pure_doc[idx]
         toFeed += "[[A piece of grammar documentation:]]\n\n "+text+"\n\n"
-    for idx in related_texts_ref_idx:
-        text = pure_ref[idx]
-        toFeed += "[[A piece of function documentation:]]\n\n "+text+"\n\n"
+
+    chosen_references = []
+    for idea in ideas:
+        title = idea[2:]
+        if (idea.startswith('+')):
+            pure_ref_under_this_title = [
+                paragraph for paragraph in pure_ref if paragraph.startswith(f'+++\ntitle = "{title}"')]
+            chosen_references = chosen_references+pure_ref_under_this_title
+    for reference in chosen_references:
+        toFeed += "[[A piece of function documentation:]]\n\n " + \
+            reference+"\n\n"
+    print("docs RAGed:", len(original_indexes),
+          "refs RAGed", len(chosen_references))
     return toFeed
 
 # Example usage
 
 
-def feed_to_RAG(question):
+def feed_to_RAG(question, ideas):
     warnings.filterwarnings("ignore")
     with open(doc_text_path, "r") as file:
         pure_doc = json.load(file)
     with open(ref_text_path, "r") as file:
         pure_ref = json.load(file)
-    return text_to_feed(doc_embedded_path, ref_embedded_path, pure_doc, pure_ref, question)
+    return text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas)
 
 
 docu = read_file(os.path.join("docs", "envision-brief.md"))
@@ -84,21 +107,14 @@ RAGcoder_personality = "You are a proficient coder in the Domain Specific Langua
 def RAG_pipeline(question, coder_personality=RAGcoder_personality):
     # enhance by ragdemander
     ideas = RAGdemand(question)
-    # ideas = "".join(ideas)
-    information = ""
-    infos = 0
-    for idea in ideas:
-        infos += 4
-        information += feed_to_RAG(idea)
+    toFeed = feed_to_RAG(question, ideas)
     # information += feed_to_RAG(ideas)
-    print("pieces gathered:", infos)
-    print(ideas)
-    print(information)
+    # print(toFeed)
     coder_prompt = question
     coder_response = client.chat.completions.create(
         model='gpt-4o-mini',
         messages=[
-            {"role": "system", "content": coder_personality+information},
+            {"role": "system", "content": coder_personality+toFeed},
             {"role": "user", "content": coder_prompt}
         ],
         max_tokens=1000,  # Adjust the number of tokens based on your needs
@@ -110,7 +126,7 @@ def RAG_pipeline(question, coder_personality=RAGcoder_personality):
 
 # %%
 if __name__ == "__main__":
-    question = '''Define a table T with 5 names with corresponding score. Show the maximum of these 5 scores at the tile a1b2, together with the name that achieves this best score at c1d2. '''
+    question = '''Define a table T with 5 names with corresponding score. Show the maximum of these 5 scores at the tile a1b2, together with the name that achieves this best score at c1d2.'''
     print(RAG_pipeline(question))
 
 # %%

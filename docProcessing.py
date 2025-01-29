@@ -69,7 +69,24 @@ def save_embedding(pure_texts, path_emb, path_text):
         clean_texts, convert_to_tensor=True).to("cpu")  # embedded text is clean of code
     torch.save(embedded_texts, path_emb)
     with open(path_text, 'w') as f:
-        json.dump(pure_texts, f)  # text is complete
+        json.dump(pure_texts, f)  # text is complete text, with code
+
+
+def parse_refs(forder_path, path_emb, path_text):
+    texts = []
+    titles = []
+    for file_name in os.listdir(forder_path):
+        if file_name.endswith(".md"):
+            with open(os.path.join(forder_path, file_name), "r", encoding="utf-8") as file:
+                content = file.read()
+            titles.append(file_name)
+            texts.append(content)
+    embedded_titltes = model.encode(
+        titles, convert_to_tensor=True).to("cpu")
+    torch.save(embedded_titltes, path_emb)
+    with open(path_text, 'w') as f:
+        json.dump(texts, f)
+    return texts
 
 
 # %%
@@ -78,10 +95,9 @@ if __name__ == "__main__":
     doc_texts = parse_folder("docs")
     save_embedding(doc_texts, "embeddings\\doc_embedded.pt",
                    "embeddings\\doc_text.json")
-
-    ref_texts = parse_folder('reference\\reference')
-    save_embedding(ref_texts, "embeddings\\ref_embedded.pt",
-                   "embeddings\\ref_text.json")
+    ref_texts = parse_refs("reference\\reference", "embeddings\\ref_embedded.pt",
+                           "embeddings\\ref_text.json")
 
     print("refs:", len(ref_texts), "docs", len(doc_texts))
+    print(ref_texts[0])
 # %%

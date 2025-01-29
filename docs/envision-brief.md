@@ -508,7 +508,7 @@ This glossary lists key concepts that permeate Envision and its environment.
 
 **def statement**: a kind of statement introducing a user-defined function.
 
-## Envision reference (pointers)
+## Envision reference
 
 **Reserved keywords:** and as at auto autodiff by const cross def default define delete desc draw each else enum expect export fail false for foreach group if import in index into keep loop match mod montecarlo not or order over params read return sample scan show sort span table then true unsafe until when where while with write
 
@@ -529,7 +529,7 @@ The **operators** by increasing order of precedence:
 * ...
 * .
 
-### Aggregators
+### Aggregators and Functions Available
 
 * **Basic:** argmax argmin argwhichever aresame count distinct distinctapprox max min product single sum
 * **Logic:** all any same whichever
@@ -537,8 +537,6 @@ The **operators** by increasing order of precedence:
 * **Statistics:** avg entropy median mode percentile stdev stdevp
 * **Ranvar:** mixture ranvar ranvar.buckets sum
 * **Zedfunc:** sum
-
-### Functions available
 
 * **Mathematics:** abs arground ceiling cos exp expsmooth floor log loggamma loglikelihood.loglogistic loglikelihood.normal loglikelihood.negativebinomial loglikelihood.poisson max min percent random.binomial random.integer random.loglogistic random.negativebinomial random.normal random.poisson random.shuffle random.uniform ratio round roundnext sin sqrt tanh
 * **Text:** concat contains containsany containscount endswith escape field fieldcount fieldr indexof lowercase padleft parsedate parsenumber parsetime printtime replace startswith strlen substr text trim tryparsedate tryparsenumber tryparsetime tryparseweek uppercase
@@ -552,7 +550,7 @@ The **operators** by increasing order of precedence:
 * **64-sets**: flag emptySet union intersection complement isSubsetOf contains printSet popCount.
 * **Special:** assertfail Files forex lastforex hash iscurrency mkuid nameof rgb solve.moq
 
-### Table of Content of the Envision documentation
+### Grammer Chapters
 
 * Relational algebra
 * Natural joins

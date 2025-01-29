@@ -1,0 +1,28 @@
+findtitle = {
+    # convert natural language chapter titles to the ones used in the markdown documentation
+    "Relational algebra overview": "relational-algebra_index",
+    "Natural joins": "relational-algebra_natural-joins",
+    "Filtering": "relational-algebra_filtering",
+    "Aggregating": "relational-algebra_aggregating",
+    "Secondary dimensions": "relational-algebra_secondary-dimensions",
+    "Cross tables": "relational-algebra_cross-tables",
+    "Table comprehensions": "relational-algebra_table-comprehensions",
+    "Table sizes": "relational-algebra_table-sizes",
+    "Ranvars and Zedfuncs": "ranvars-zedfuncs",
+    "Enum Types": "enums",
+    "Loops and iterations": "iterations",
+    "User defined functions": "functions",
+    "Monte Carlo (`montecarlo` blocks)": "montecarlo",
+    "Differentiable Programming (`autodiff` blocks)": "differentiable-programming",
+    "Modules": "modules",
+    "Read and write files": "files_index",
+    "Read dimensions": "files_dimensions",
+    "Read patterns": "files_read-patterns",
+    "Read formats": "files_read-formats",
+    "Path schemas": "files_path-schemas",
+    "Named schemas": "files_named-schemas",
+    "Dashboards": "dashboard_index",
+    "Slicing dashboards": "dashboard_slicing",
+    "Calendar Elements": "calendar",
+    "Read user inputs": "user-inputs"
+}
