@@ -1,22 +1,10 @@
 # %%
 """
-This module provides functionality to retrieve relevant documentation based on a
-given question and generate responses using a RAG pipeline. Functions:
-    penalize(x):
-        Applies a penalization function to the input value x.
-    query_related_titles(question, embedded_path, pure_texts, count=5):
-        Retrieves titles related to the input question based on embeddings
-        similarity.
-    text_to_feed(doc_embedded_path, ref_embedded_path, pure_doc, pure_ref,
-    question, countDocu=5, countRef=5):
-        Generates text to feed into the RAG model based on related documentation
-        and reference texts.
-    feed_to_RAG(question):
-        Loads documentation and reference texts, and generates text to feed into
-        the RAG model based on the input question.
-    RAG_pipeline(question, coder_personality=RAGcoder_personality):
-        Enhances the input question using RAGdemand, retrieves relevant
-        documentation, and generates a response using the RAG model.
+First try of improvement of the RAG pipeline. The idea is to use the generated code to extract function names and then search 
+for documentation of these functions. This documentation will be used to generate a second response.
+
+For now, the results aren't any better than with the previous version. The implementation might be wrong, but the documentation 
+is probably the main limit of this approach.
 """
 from transformers import AutoModel, AutoTokenizer
 from RAGdemander import RAGdemand
@@ -69,7 +57,7 @@ def query_related_titles(question, embedded_path, pure_texts, count=5):
     return ranked_indices[:count]
 
 
-def text_to_feed(doc_embedded_path, ref_embedded_path, pure_doc, pure_ref, question, countDocu=2, countRef=2):
+def text_to_feed(doc_embedded_path, ref_embedded_path, pure_doc, pure_ref, question, countDocu=5, countRef=5):
     related_texts_doc_idx = query_related_titles(
         question, doc_embedded_path, pure_doc, countDocu)
     related_texts_ref_idx = query_related_titles(
@@ -112,14 +100,17 @@ RAGcoder_personality = "You are a proficient coder in the Domain Specific Langua
 def RAG_pipeline(question, coder_personality=RAGcoder_personality):
     # RAGdemander will return a list of ideas related to the question
     ideas = RAGdemand(question)
-    # ideas = "".join(ideas)
+    ideas = "".join(ideas)
     information = ""
-    infos = 0
-    for idea in ideas:
-        infos += 4
-        information += feed_to_RAG(idea)
-    # information += feed_to_RAG(ideas)
-    print("pieces gathered:", infos)
+    print(len(ideas))
+    # infos = 0
+    # for idea in ideas:
+    #     infos += 4
+    #     information += feed_to_RAG(idea)
+
+    # Based on the ideas, retrieve relevant documentation and reference texts
+    information += feed_to_RAG(ideas)
+    print(len(information))
     print(ideas)
     print(information)
 
@@ -137,16 +128,58 @@ def RAG_pipeline(question, coder_personality=RAGcoder_personality):
     stud_sentence = coder_response.choices[0].message.content
     return stud_sentence
 
+def extract_functions_from_code(code):
+    """Extract function names from the generated code."""
+    pattern = r'\bdef (\w+)\('
+    return re.findall(pattern, code)
 
+
+def find_function_docs(functions, doc_texts):
+    """Find documentation snippets for the given functions."""
+    function_docs = ""
+    for func in functions:
+        for doc in doc_texts:
+            if func in doc:
+               function_docs += f"[[Documentation for function {func}:]]\n\n{doc}\n\n"
+            break
+    return function_docs
+
+
+def enhanced_RAG_pipeline(question, coder_personality=RAGcoder_personality):
+    # Initial RAG pipeline to generate first code
+    initial_code = RAG_pipeline(question, coder_personality)
+
+    # Extract functions from the generated code
+    functions = extract_functions_from_code(initial_code)
+
+    # Load documentation texts
+    with open(doc_text_path, "r") as file:
+        pure_doc = json.load(file)
+
+    # Find relevant documentation for the extracted functions
+    function_docs = find_function_docs(functions, pure_doc)
+
+    # Generate a second response using the initial code and function documentation
+    coder_response = client.chat.completions.create(
+        model='gpt-4o-mini',
+            messages=[
+                {"role": "system", "content": coder_personality + function_docs},
+                {"role": "user", "content": initial_code}
+            ],
+            max_tokens=1000,
+            temperature=0.1,
+    )
+    final_code = coder_response.choices[0].message.content
+    return final_code
+    
 # %%
 if __name__ == "__main__":
     question = '''Define a table T with 5 names with corresponding score. Show the maximum of these 5 scores at the tile a1b2, together with the name that achieves this best score at c1d2. '''
-    print(RAG_pipeline(question))
-
+    print(enhanced_RAG_pipeline(question))
+    
 # %%
 if __name__ == "__main__":
     question = '''Define a ranvar corresponding to a poisson probability distribution and display it as a scalar'''
     print(RAG_pipeline(question))
+    
 
-
-# %%

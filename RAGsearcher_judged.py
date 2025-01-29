@@ -69,7 +69,7 @@ def query_related_titles(question, embedded_path, pure_texts, count=5):
     return ranked_indices[:count]
 
 
-def text_to_feed(doc_embedded_path, ref_embedded_path, pure_doc, pure_ref, question, countDocu=2, countRef=2):
+def text_to_feed(doc_embedded_path, ref_embedded_path, pure_doc, pure_ref, question, countDocu=5, countRef=5):
     related_texts_doc_idx = query_related_titles(
         question, doc_embedded_path, pure_doc, countDocu)
     related_texts_ref_idx = query_related_titles(
@@ -99,7 +99,7 @@ def feed_to_RAG(question):
 
 docu = read_file(os.path.join("docs", "envision-brief.md"))
 
-RAGcoder_personality = "You are a proficient coder in the Domain Specific Language called Envision. \
+RAGcoder_personality = "You are a proficient coder in a Domain Specific Language called Envision. \
     Your task is to generate response to the given challenge. \
     Some challenges will ask you to generate Envision code,\
     others will ask you to explain given code or answer questions related to the Envision language. \
@@ -112,21 +112,16 @@ RAGcoder_personality = "You are a proficient coder in the Domain Specific Langua
 def RAG_pipeline(question, coder_personality=RAGcoder_personality):
     # RAGdemander will return a list of ideas related to the question
     ideas = RAGdemand(question)
-    # ideas = "".join(ideas)
+    ideas = "".join(ideas)
     information = ""
-    infos = 0
-    for idea in ideas:
-        infos += 4
-        information += feed_to_RAG(idea)
-    # information += feed_to_RAG(ideas)
-    print("pieces gathered:", infos)
-    print(ideas)
-    print(information)
+
+    # Based on the ideas, retrieve relevant documentation and reference texts
+    information += feed_to_RAG(ideas)
 
     # Generate response using user question and information
     coder_prompt = question
     coder_response = client.chat.completions.create(
-        model='gpt-4o-mini',
+        model='gpt-3.5-turbo',
         messages=[
             {"role": "system", "content": coder_personality+information},
             {"role": "user", "content": coder_prompt}

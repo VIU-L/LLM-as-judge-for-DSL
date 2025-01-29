@@ -70,6 +70,20 @@ client = OpenAI(api_key=api_key)
 
 
 def RAGdemand(question, demander_personality=demander_personality):
+    """
+    Generates a response to a given question using the demander's personality.
+    Specifically, the demander is asked to propose some grammar points or
+    function usage that are NOT specified in the BASIC DOCUMENTATION but that a
+    coder will nevertheless need to know in order to complete the CODING TASK.
+    The output of the demander is a list of bullet points, e.g. [- the 'cos'
+    function'] or [- handle dates] or [- defining a 'zedfunc']. Args:
+        question (str): The question to be answered. demander_personality (str):
+        The personality to be used for generating the response.
+
+    Returns:
+        list: A list of strings containing the response, split by newline
+        characters, containing the proposed grammar points or function usage.
+    """
     demander_response = client.chat.completions.create(
         model='gpt-4o',
         messages=[

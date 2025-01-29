@@ -1,29 +1,5 @@
 """
-A py copy of the original LLMasJudge.ipynb to avoid merging conflicts.
-It uses OpenAI's GPT-3.5-turbo model to generate and judge responses based on predefined personalities and rules.
-Functions:
-----------
-- pipeline_verify:
-    1. Generate a student's response to a given challenge.
-    2. Check the response for compilation errors. if it does not compile, go back to step 1.
-    2. Verity the response using a judge.
-    3. Then a verifier converts the judge's decision to a binary output.
-
-- pipeline_score_allchallenge:
-    Test on a list of challenges by verifying each one using the pipeline_verify function.
-    It prints the number of correct responses and the overall percentage accuracy.
-
-Variables:
-----------
-- client: An instance of the OpenAI client initialized with the provided API key.
-- docu: The documentation content read from the "envision-brief.md" file.
-- coder_personality: A string defining the coder's personality and task.
-- judge_personality_teacherAuthority: A string defining the judge's personality and rules for evaluating responses.
-
-Usage:
-------
-- The script can be run directly, and it will score a predefined list of challenges.
-- The main function to execute is `pipeline_score_allchallenge`, which takes a list of challenge indexes and the coder personality as input.
+A code adapted from LLMasJudge.py to judge the RAGsearcher model.
 """
 
 # %% Initialization
@@ -32,6 +8,7 @@ from apikey import api_key
 from myTools import *
 import os
 import sys
+import RAGsearcher_judged
 
 client = OpenAI(api_key=api_key)
 
@@ -87,17 +64,7 @@ def pipeline_verify(challenge, coder_personality, judge_personality=judge_person
 
     # generate an answer and compile the student's answer until it compiles or the number of tries is reached
     for compile_try in range(1, n_tries+1):
-        coder_prompt = question
-        coder_response = client.chat.completions.create(
-            model='gpt-3.5-turbo',
-            messages=[
-                {"role": "system", "content": coder_personality},
-                {"role": "user", "content": coder_prompt}
-            ],
-            max_tokens=1000,  # Adjust the number of tokens based on your needs
-            temperature=0.2,
-        )
-        stud_sentence = coder_response.choices[0].message.content
+        stud_sentence = RAGsearcher_judged.RAG_pipeline(question) # Generate the student's answer from RAGsearcher model
 
         if verbose:
             print('### compile try:', compile_try)
@@ -179,7 +146,6 @@ def pipeline_score_allchallenge(paths, coder_personality, verbose=True):
     print('## Accuracy:\n'+str(score)+' out of ' +
           str(len(challenges))+', '+str(score/len(challenges)*100)+'%')
     print('## Results array:\n', results_array)
-
 
 # %% main
 if __name__ == '__main__':

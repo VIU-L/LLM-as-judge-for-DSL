@@ -1,6 +1,6 @@
 """
 A py copy of the original LLMasJudge.ipynb to avoid merging conflicts.
-It uses OpenAI's GPT-3.5-turbo model to generate and judge responses based on predefined personalities and rules.
+It uses a Deepseek model to generate and judge responses based on predefined personalities and rules.
 Functions:
 ----------
 - pipeline_verify:
@@ -15,7 +15,7 @@ Functions:
 
 Variables:
 ----------
-- client: An instance of the OpenAI client initialized with the provided API key.
+- DEEPSEEK_API_KEY: The API key for the DeepSeek model.
 - docu: The documentation content read from the "envision-brief.md" file.
 - coder_personality: A string defining the coder's personality and task.
 - judge_personality_teacherAuthority: A string defining the judge's personality and rules for evaluating responses.
@@ -27,13 +27,38 @@ Usage:
 """
 
 # %% Initialization
-from openai import OpenAI
-from apikey import api_key
 from myTools import *
 import os
 import sys
+import requests
+from dotenv import load_dotenv
 
-client = OpenAI(api_key=api_key)
+# Charger les variables d'environnement
+load_dotenv()
+
+#
+DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+
+# URL de l'API DeepSeek
+DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
+
+# Fonction pour envoyer une requête à DeepSeek
+def ask_deepseek(prompt_system, prompt_user):
+    headers = {
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "model": "deepseek-chat",  # Remplacez par le modèle DeepSeek que vous souhaitez utiliser
+        "messages": [{"role": "system", "content": prompt_system},
+                     {"role": "user", "content": prompt_user}]
+    }
+    response = requests.post(DEEPSEEK_API_URL, headers=headers, json=data)
+    if response.status_code == 200:
+        return response.json()['choices'][0]['message']['content']
+    else:
+        return f"Erreur: {response.status_code}, {response.text}"
+    
 
 # %% Defining the personalities, rules, and docs for the coder and judge
 docu = read_file(os.path.join("docs", "envision-brief.md"))
@@ -88,15 +113,7 @@ def pipeline_verify(challenge, coder_personality, judge_personality=judge_person
     # generate an answer and compile the student's answer until it compiles or the number of tries is reached
     for compile_try in range(1, n_tries+1):
         coder_prompt = question
-        coder_response = client.chat.completions.create(
-            model='gpt-3.5-turbo',
-            messages=[
-                {"role": "system", "content": coder_personality},
-                {"role": "user", "content": coder_prompt}
-            ],
-            max_tokens=1000,  # Adjust the number of tokens based on your needs
-            temperature=0.2,
-        )
+        coder_response = ask_deepseek(coder_personality, coder_prompt)  
         stud_sentence = coder_response.choices[0].message.content
 
         if verbose:
@@ -118,30 +135,15 @@ def pipeline_verify(challenge, coder_personality, judge_personality=judge_person
 
     # judge the student's answer
     judge_prompt = "### QUESTION: "+question+"\n### PROFESSOR ANSWER: " + \
-        prof_answer+"\n### STUDENT ANSWER: "+stud_sentence
-    judge_response = client.chat.completions.create(
-        model='gpt-4o-mini',
-        messages=[
-            {"role": "system", "content": judge_personality+ref_str},
-            {"role": "user", "content": judge_prompt}
-        ],
-        max_tokens=800,  # Adjust the number of tokens based on your needs
-        temperature=0.2,
-    )
+    prof_answer+"\n### STUDENT ANSWER: "+stud_sentence
+    judge_response = ask_deepseek(judge_personality+ref_str, judge_prompt)  
     judge_sentence = judge_response.choices[0].message.content
-
+    
     if verbose:
         print('### JUDGE ANSWER:\n', judge_sentence)
-
+        
     # verify the judge's decision
-    verifier_response = client.chat.completions.create(
-        model='gpt-3.5-turbo',
-        messages=[
-            {"role": "system", "content": verifier_personality},
-            {"role": "user", "content": judge_sentence}
-        ],
-        max_tokens=800,  # Adjust the number of tokens based on your needs
-        temperature=0.05)
+    verifier_response = ask_deepseek(verifier_personality, judge_sentence)  
 
     judge_decision = (verifier_response.choices[0].message.content == '1')
 
