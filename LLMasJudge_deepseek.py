@@ -63,7 +63,7 @@ def ask_deepseek(prompt_system, prompt_user):
 # %% Defining the personalities, rules, and docs for the coder and judge
 docu = read_file(os.path.join("docs", "envision-brief.md"))
 
-coder_personality = "You are a proficient coder in the Domain Specific Language called Envision. \
+coder_personality = "You are a proficient coder in a Domain Specific Language called Envision. \
     Your task is to generate response to the given challenge. \
     Some challenges will ask you to generate Envision code,\
     others will ask you to explain given code or answer questions related to the Envision language. \
@@ -79,7 +79,7 @@ Your main job is not to check the syntax correctness, but the logical correctnes
 If the STUDENT ANSWER does not treat the QUESTION logically, it is UNACCEPTABLE.\
 Pay special attention to the comments in the PROFESSOR ANSWER. If these comments include\
 a rule and if the STUDENT ANSWER violates it, this is UNACCEPTABLE.\
-If in the show command, the STUDENT ANSWER add or omit a print position (like a1b2) compared to the PROFESSOR ANSWER, ignore this: this is always ACCEPTABLE.\
+If in the show command, the STUDENT ANSWER adds or omits a print position (like a1b2 or a1c3) compared to the PROFESSOR ANSWER, you must ignore this: this is always ACCEPTABLE.\
 The use of extra variable or table to temporarily contain a intermediate quantity is ACCEPTABLE.\
 Differences in variable names, column names, table names and label names etc. shall systematically be ACCEPTABLE! \
 There are sometimes various ways or logics to treat the same QUESTION, and this is ACCEPTABLE, as long as the goal of the QUESTION is achieved.\
@@ -136,7 +136,7 @@ def pipeline_verify(challenge, coder_personality, judge_personality=judge_person
     # judge the student's answer
     judge_prompt = "### QUESTION: "+question+"\n### PROFESSOR ANSWER: " + \
     prof_answer+"\n### STUDENT ANSWER: "+stud_sentence
-    judge_response = ask_deepseek(judge_personality, judge_prompt)  
+    judge_response = ask_deepseek(judge_personality+ref_str, judge_prompt)  
     judge_sentence = judge_response.choices[0].message.content
     
     if verbose:

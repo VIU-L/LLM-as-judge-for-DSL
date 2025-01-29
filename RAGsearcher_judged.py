@@ -99,7 +99,7 @@ def feed_to_RAG(question):
 
 docu = read_file(os.path.join("docs", "envision-brief.md"))
 
-RAGcoder_personality = "You are a proficient coder in the Domain Specific Language called Envision. \
+RAGcoder_personality = "You are a proficient coder in a Domain Specific Language called Envision. \
     Your task is to generate response to the given challenge. \
     Some challenges will ask you to generate Envision code,\
     others will ask you to explain given code or answer questions related to the Envision language. \
