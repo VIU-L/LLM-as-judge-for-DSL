@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
     # Get the date and time as YYYY-mm-dd-xx:xx
     input_challenge_folder = "mychallenges"
-    folder_path = os.path.join("output", "LLMasJudge")
+    folder_path = os.path.join("output", "Judging_RAGsearcher")
     output_path = os.path.join(
         folder_path, f"{datetime.now().strftime('%Y-%m-%d-%H-%M')}.md")
 

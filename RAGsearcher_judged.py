@@ -69,19 +69,40 @@ def query_related_titles(question, embedded_path, pure_texts, count=5):
     return ranked_indices[:count]
 
 
-def text_to_feed(doc_embedded_path, ref_embedded_path, pure_doc, pure_ref, question, countDocu=5, countRef=5):
-    related_texts_doc_idx = query_related_titles(
-        question, doc_embedded_path, pure_doc, countDocu)
-    related_texts_ref_idx = query_related_titles(
-        question, ref_embedded_path, pure_ref, countRef)
+def text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDocu=5):
+
+    # ideas are formulated as eg. ['- Relational algebra', '- Natural joins', '- Table comprehensions', '- Table sizes', '- Dashboards', '+ extend.range', '+ concat', '+ sum', '+ show', '+ text'] where - signifies grammar and + signifies function
+
+    # all paragraphs in pure_doc starts with &Title: (title).
 
     toFeed = ""
-    for idx in related_texts_doc_idx:
+    print(ideas)
+    valid_doc_paragraph_indexes = []
+    for idea in ideas:
+        title = idea[2:]
+        if idea.startswith('-'):
+            chaptertitle = findtitle[title]
+            valid_doc_paragraph_indexes = valid_doc_paragraph_indexes+[i for i, paragraph in enumerate(
+                pure_doc) if paragraph.startswith(f"&Title: {chaptertitle}")]
+    print("eligible texts:", len(valid_doc_paragraph_indexes))
+    original_indexes = query_related_titles(
+        question, doc_embedded_path, pure_doc, valid_doc_paragraph_indexes, countDocu)
+    for idx in original_indexes:
         text = pure_doc[idx]
         toFeed += "[[A piece of grammar documentation:]]\n\n "+text+"\n\n"
-    for idx in related_texts_ref_idx:
-        text = pure_ref[idx]
-        toFeed += "[[A piece of function documentation:]]\n\n "+text+"\n\n"
+
+    chosen_references = []
+    for idea in ideas:
+        title = idea[2:]
+        if (idea.startswith('+')):
+            pure_ref_under_this_title = [
+                paragraph for paragraph in pure_ref if paragraph.startswith(f'+++\ntitle = "{title}"')]
+            chosen_references = chosen_references+pure_ref_under_this_title
+    for reference in chosen_references:
+        toFeed += "[[A piece of function documentation:]]\n\n " + \
+            reference+"\n\n"
+    print("docs RAGed:", len(original_indexes),
+          "refs RAGed", len(chosen_references))
     return toFeed
 
 # Example usage
@@ -110,20 +131,16 @@ RAGcoder_personality = "You are a proficient coder in a Domain Specific Language
 
 
 def RAG_pipeline(question, coder_personality=RAGcoder_personality):
-    # RAGdemander will return a list of ideas related to the question
+    # enhance by ragdemander
     ideas = RAGdemand(question)
-    ideas = "".join(ideas)
-    information = ""
-
-    # Based on the ideas, retrieve relevant documentation and reference texts
-    information += feed_to_RAG(ideas)
-
-    # Generate response using user question and information
+    toFeed = feed_to_RAG(question, ideas)
+    # information += feed_to_RAG(ideas)
+    # print(toFeed)
     coder_prompt = question
     coder_response = client.chat.completions.create(
-        model='gpt-3.5-turbo',
+        model='gpt-4o-mini',
         messages=[
-            {"role": "system", "content": coder_personality+information},
+            {"role": "system", "content": coder_personality+toFeed},
             {"role": "user", "content": coder_prompt}
         ],
         max_tokens=1000,  # Adjust the number of tokens based on your needs
