@@ -8,7 +8,7 @@ from apikey import api_key
 from myTools import *
 import os
 import sys
-import RAGsearcher_judged
+import RAGsearcher_v2
 
 client = OpenAI(api_key=api_key)
 
@@ -64,7 +64,7 @@ def pipeline_verify(challenge, coder_personality, judge_personality=judge_person
 
     # generate an answer and compile the student's answer until it compiles or the number of tries is reached
     for compile_try in range(1, n_tries+1):
-        stud_sentence = RAGsearcher_judged.RAG_pipeline(question) # Generate the student's answer from RAGsearcher model
+        stud_sentence = RAGsearcher_v2.RAG_pipeline(question, printing=False) # Generate the student's answer from RAGsearcher model
 
         if verbose:
             print('### compile try:', compile_try)

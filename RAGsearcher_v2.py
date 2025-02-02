@@ -45,14 +45,20 @@ def query_related_titles(question, embedded_path, pure_texts, valid_indexes, cou
     return original_indices[:count]
 
 
-def text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDocu=5):
-
+def text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDocu=5, printing=True):
+    """
+    The printing argument added lately is useful for judging the performance of the RAG model.
+    When executing the file Judgind_RAGsearcher.py, the printing argument must be set to False in order to
+    isolate the coder response, because the judge will only take in consideration the coder response 
+    and not the RAG suggestions.
+    """
     # ideas are formulated as eg. ['- Relational algebra', '- Natural joins', '- Table comprehensions', '- Table sizes', '- Dashboards', '+ extend.range', '+ concat', '+ sum', '+ show', '+ text'] where - signifies grammar and + signifies function
 
     # all paragraphs in pure_doc starts with &Title: (title).
 
     toFeed = ""
-    print(ideas)
+    if printing:
+        print(ideas)
     valid_doc_paragraph_indexes = []
     for idea in ideas:
         title = idea[2:]
@@ -60,7 +66,8 @@ def text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDo
             chaptertitle = findtitle[title]
             valid_doc_paragraph_indexes = valid_doc_paragraph_indexes+[i for i, paragraph in enumerate(
                 pure_doc) if paragraph.startswith(f"&Title: {chaptertitle}")]
-    print("eligible texts:", len(valid_doc_paragraph_indexes))
+    if printing:
+        print("eligible texts:", len(valid_doc_paragraph_indexes))
     original_indexes = query_related_titles(
         question, doc_embedded_path, pure_doc, valid_doc_paragraph_indexes, countDocu)
     for idx in original_indexes:
@@ -77,20 +84,21 @@ def text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDo
     for reference in chosen_references:
         toFeed += "[[A piece of function documentation:]]\n\n " + \
             reference+"\n\n"
-    print("docs RAGed:", len(original_indexes),
-          "refs RAGed", len(chosen_references))
+    if printing:
+        print("docs RAGed:", len(original_indexes),
+              "refs RAGed", len(chosen_references))
     return toFeed
 
 # Example usage
 
 
-def feed_to_RAG(question, ideas):
+def feed_to_RAG(question, ideas, printing=True):
     warnings.filterwarnings("ignore")
     with open(doc_text_path, "r") as file:
         pure_doc = json.load(file)
     with open(ref_text_path, "r") as file:
         pure_ref = json.load(file)
-    return text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas)
+    return text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, printing)
 
 
 docu = read_file(os.path.join("docs", "envision-brief.md"))
@@ -104,10 +112,10 @@ RAGcoder_personality = "You are a proficient coder in the Domain Specific Langua
     ### Basic Documentation\n" + docu
 
 
-def RAG_pipeline(question, coder_personality=RAGcoder_personality):
+def RAG_pipeline(question, coder_personality=RAGcoder_personality, printing=True):
     # enhance by ragdemander
     ideas = RAGdemand(question)
-    toFeed = feed_to_RAG(question, ideas)
+    toFeed = feed_to_RAG(question, ideas, printing)
     # information += feed_to_RAG(ideas)
     # print(toFeed)
     coder_prompt = question
@@ -127,6 +135,6 @@ def RAG_pipeline(question, coder_personality=RAGcoder_personality):
 # %%
 if __name__ == "__main__":
     question = '''Define a table T with 5 names with corresponding score. Show the maximum of these 5 scores at the tile a1b2, together with the name that achieves this best score at c1d2.'''
-    print(RAG_pipeline(question))
+    print(RAG_pipeline(question, printing=False))
 
 # %%
