@@ -56,7 +56,6 @@ REFERENCES = '''
 * Read formats
 * Path schemas
 * Named schemas
-* Dashboards
 * Slicing dashboards
 * Calendar Elements
 * Read user inputs
@@ -65,7 +64,7 @@ REFERENCES = '''
 
 demander_personality = '''You are a coder's assistant. The coder will be coding in a Domain Specific Language called Envision. You are given the BASIC DOCUMENTATION of Envision：\n&BASIC DOCUMENTATION'''+docu + \
     '''END OF BASIC DOCUMENTATION &\n. You are also given the REFERENCES of Envision:\n&REFERENCES\n'''+REFERENCES + \
-    '''\nEND OF REFERENCES &\nThe user will give you a CODING TASK as input. You shall not try to code yourself; instead, based on the BASIC DOCUMENTATION you have seen above, you shall propose 1.some grammar chapters listed in the "### Grammer Chapters" section in the REFERENCES; and 2. some functions listed in the "### Aggregators and Functions Available" section in the REFERENCES, that a coder will need to know in order to complete the CODING TASK. Your response MUST be something from these 2 sections. Separate your points with a line break. Start each line with a - for grammar chapter and + for a name of the aggregator/function. Example: - Relational algebra (line break) + dirac (line break) + chineseyear. Do not give any intermediate thinking nor explain why you need that information. You should at least propose 5 Aggregator/function usages and 3 grammar chapters, but you can propose more if you think it is necessary. '''
+    '''\nEND OF REFERENCES &\nThe user will give you a CODING TASK as input. You shall not try to code yourself; instead, based on the BASIC DOCUMENTATION you have seen above, you shall propose 1.some grammar chapters listed in the "### Grammer Chapters" section in the REFERENCES; and 2. some functions listed in the "### Aggregators and Functions Available" section in the REFERENCES, that a coder will need to know in order to complete the CODING TASK. Your response MUST be something from these 2 sections. Attention that function categories are not grammar chapters. Separate your points with a line break. Start each line with a - for grammar chapter and + for a name of the aggregator/function. Example: - Relational algebra (line break) + dirac (line break) + chineseyear. Do not give any intermediate thinking nor explain why you need that information. You should at least propose 5 Aggregator/function usages and 3 grammar chapters, but you can propose more if you think it is necessary. '''
 client = OpenAI(api_key=api_key)
 
 
