@@ -58,18 +58,14 @@ def pipeline_verify(challenge, coder_personality, judge_personality=judge_person
     2. Verity the response using a judge.
     3. Then a verifier converts the judge's decision to a binary output.
     """
-
     question, prof_answer, references = decompose_challenge(challenge)
     ref_str = create_ref(references)
-
     # generate an answer and compile the student's answer until it compiles or the number of tries is reached
     for compile_try in range(1, n_tries+1):
-        stud_sentence = RAGsearcher_v2.RAG_pipeline(question, printing=False) # Generate the student's answer from RAGsearcher model
-
+        stud_sentence = RAGsearcher_v2.RAG_pipeline(question) # Generate the student's answer from RAGsearcher model
         if verbose:
             print('### compile try:', compile_try)
             print('#### STUDENT ANSWER:\n', stud_sentence)
-
         if (question.split("\n")[0] ==
                 '# this question expects a textual answer and not generation of code. #'):
             print('#### Compilation: theoretical question, no compile.')
@@ -82,7 +78,6 @@ def pipeline_verify(challenge, coder_personality, judge_personality=judge_person
             if not verbose:
                 print('badcode', extract_code(stud_sentence))
             return stud_sentence, "too many compilation failures!", False
-
     # judge the student's answer
     judge_prompt = "### QUESTION: "+question+"\n### PROFESSOR ANSWER: " + \
         prof_answer+"\n### STUDENT ANSWER: "+stud_sentence
@@ -132,6 +127,7 @@ def pipeline_score_allchallenge(paths, coder_personality, verbose=True):
         print('## verifying challenge ' + paths[i], '\n')
         _, judge_sentence, judge_decision = pipeline_verify(
             challenge, coder_personality, verbose=verbose)
+        print('verified')
         if (judge_sentence == 'too many compilation failures!'):
             results_array[i] = f"{i}: Compilation fail"
             continue
@@ -167,12 +163,8 @@ if __name__ == '__main__':
         tee = Tee(sys.stdout, f)
         sys.stdout = tee
         # Attention, cela coûte cher en argent
-        # challenge_paths = [os.path.join(input_challenge_folder, filename)
-        #          for filename in os.listdir(input_challenge_folder)
-        #          if filename.endswith('.md') and filename!='description.md']
-
         challenge_paths = ["mychallenges/c000.md", "mychallenges/c001.md", "mychallenges/c002.md",
-                           "mychallenges/c003.md", "mychallenges/c004.md", "mychallenges/c005.md",
+                           "mychallenges/c003.md", "mychallenges/c004.md",
                            "mychallenges/c006.md", "mychallenges/c007.md", "mychallenges/c008.md",
                            "mychallenges/c009.md", "mychallenges/c010.md", "mychallenges/c011.md",
                            "mychallenges/c012.md", "mychallenges/c013.md", "mychallenges/c014.md"]

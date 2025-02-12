@@ -63,17 +63,21 @@ def text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDo
     for idea in ideas:
         title = idea[2:]
         if idea.startswith('-'):
-            chaptertitle = findtitle[title]
+            chaptertitle = ''
+            for key in findtitle.keys():
+                if key in title:
+                    chaptertitle = findtitle[key]
+            if chaptertitle == '':
+                continue
             valid_doc_paragraph_indexes = valid_doc_paragraph_indexes+[i for i, paragraph in enumerate(
                 pure_doc) if paragraph.startswith(f"&Title: {chaptertitle}")]
     if printing:
-        print("eligible texts:", len(valid_doc_paragraph_indexes))
+        print("eligible grammar:", len(valid_doc_paragraph_indexes))
     original_indexes = query_related_titles(
         question, doc_embedded_path, pure_doc, valid_doc_paragraph_indexes, countDocu)
     for idx in original_indexes:
         text = pure_doc[idx]
         toFeed += "[[A piece of grammar documentation:]]\n\n "+text+"\n\n"
-
     chosen_references = []
     for idea in ideas:
         title = idea[2:]
@@ -81,6 +85,7 @@ def text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDo
             pure_ref_under_this_title = [
                 paragraph for paragraph in pure_ref if paragraph.startswith(f'+++\ntitle = "{title}"')]
             chosen_references = chosen_references+pure_ref_under_this_title
+    print("eligible functions:", len(chosen_references))
     for reference in chosen_references:
         toFeed += "[[A piece of function documentation:]]\n\n " + \
             reference+"\n\n"
@@ -92,13 +97,13 @@ def text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDo
 # Example usage
 
 
-def feed_to_RAG(question, ideas, printing=True):
+def feed_to_RAG(question, ideas, printing):
     warnings.filterwarnings("ignore")
     with open(doc_text_path, "r") as file:
         pure_doc = json.load(file)
     with open(ref_text_path, "r") as file:
         pure_ref = json.load(file)
-    return text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, printing)
+    return text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDocu = 5, printing = printing)
 
 
 docu = read_file(os.path.join("docs", "envision-brief.md"))
@@ -112,10 +117,10 @@ RAGcoder_personality = "You are a proficient coder in the Domain Specific Langua
     ### Basic Documentation\n" + docu
 
 
-def RAG_pipeline(question, coder_personality=RAGcoder_personality, printing=True):
+def RAG_pipeline(question, coder_personality=RAGcoder_personality, printing = True):
     # enhance by ragdemander
     ideas = RAGdemand(question)
-    toFeed = feed_to_RAG(question, ideas, printing)
+    toFeed = feed_to_RAG(question, ideas, printing = printing)
     # information += feed_to_RAG(ideas)
     # print(toFeed)
     coder_prompt = question
