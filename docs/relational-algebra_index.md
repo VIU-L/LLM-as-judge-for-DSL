@@ -58,7 +58,3 @@ The attentive reader might have noticed that the script above is mixing _two_ ta
 A _vector_ in the Envision realm is equivalent to a _column_ in the database realm. However, unlike SQL databases, creating and manipulating columns in Envision is the natural expected way to proceed. By leveraging operations that are automatically performed over a vector (i.e. a column), Envision removes the need to resort to manual loops (i.e. `for` loops) in the vast majority of supply chain situations.
 
 _Advanced remark_: Envision tables are what Python or R users would recognize as Data Frames. Under the hood, Envision does not _reify_ all the vectors, even when those vectors get named through a variable. For performance, the compiler attempts to inline calculations whenever inlining is deemed more efficient than the alternative. For example, renaming a vector i.e. `Orders.ChargeBis = Orders.Charge` is a zero-cost operation in Envision.
-
-## Video Tutorial
-
-<iframe width="640" height="360" sandbox="allow-same-origin allow-scripts allow-popups" src="https://tube.lokad.com/videos/embed/943f8aa9-75fc-435f-afa9-f178ca73038a?title=0&warningTitle=0" frameborder="0" allowfullscreen></iframe>

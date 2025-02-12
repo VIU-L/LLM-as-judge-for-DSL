@@ -45,34 +45,26 @@ def query_related_titles(question, embedded_path, pure_texts, valid_indexes, cou
     return original_indices[:count]
 
 
-def text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDocu=5, printing=True):
-    """
-    The printing argument added lately is useful for judging the performance of the RAG model.
-    When executing the file Judgind_RAGsearcher.py, the printing argument must be set to False in order to
-    isolate the coder response, because the judge will only take in consideration the coder response 
-    and not the RAG suggestions.
-    """
+def text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDocu=5):
+
     # ideas are formulated as eg. ['- Relational algebra', '- Natural joins', '- Table comprehensions', '- Table sizes', '- Dashboards', '+ extend.range', '+ concat', '+ sum', '+ show', '+ text'] where - signifies grammar and + signifies function
 
     # all paragraphs in pure_doc starts with &Title: (title).
 
     toFeed = ""
-    if printing:
-        print(ideas)
+    print(ideas)
     valid_doc_paragraph_indexes = []
     for idea in ideas:
         title = idea[2:]
+        chaptertitle = ""
         if idea.startswith('-'):
-            chaptertitle = ''
             for key in findtitle.keys():
                 if key in title:
                     chaptertitle = findtitle[key]
-            if chaptertitle == '':
-                continue
-            valid_doc_paragraph_indexes = valid_doc_paragraph_indexes+[i for i, paragraph in enumerate(
-                pure_doc) if paragraph.startswith(f"&Title: {chaptertitle}")]
-    if printing:
-        print("eligible grammar:", len(valid_doc_paragraph_indexes))
+                    break
+            if chaptertitle != "":
+                valid_doc_paragraph_indexes = valid_doc_paragraph_indexes+[i for i, paragraph in enumerate(
+                    pure_doc) if paragraph.startswith(f"&Title: {chaptertitle}")]
     original_indexes = query_related_titles(
         question, doc_embedded_path, pure_doc, valid_doc_paragraph_indexes, countDocu)
     for idx in original_indexes:
@@ -89,21 +81,20 @@ def text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDo
     for reference in chosen_references:
         toFeed += "[[A piece of function documentation:]]\n\n " + \
             reference+"\n\n"
-    if printing:
-        print("docs RAGed:", len(original_indexes),
-              "refs RAGed", len(chosen_references))
+    print("docs RAGed:", len(original_indexes),
+          "refs RAGed", len(chosen_references))
     return toFeed
 
 # Example usage
 
 
-def feed_to_RAG(question, ideas, printing):
+def feed_to_RAG(question, ideas):
     warnings.filterwarnings("ignore")
     with open(doc_text_path, "r") as file:
         pure_doc = json.load(file)
     with open(ref_text_path, "r") as file:
         pure_ref = json.load(file)
-    return text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas, countDocu = 5, printing = printing)
+    return text_to_feed(doc_embedded_path, pure_doc, pure_ref, question, ideas)
 
 
 docu = read_file(os.path.join("docs", "envision-brief.md"))
@@ -117,10 +108,10 @@ RAGcoder_personality = "You are a proficient coder in the Domain Specific Langua
     ### Basic Documentation\n" + docu
 
 
-def RAG_pipeline(question, coder_personality=RAGcoder_personality, printing = True):
+def RAG_pipeline(question, coder_personality=RAGcoder_personality):
     # enhance by ragdemander
     ideas = RAGdemand(question)
-    toFeed = feed_to_RAG(question, ideas, printing = printing)
+    toFeed = feed_to_RAG(question, ideas)
     # information += feed_to_RAG(ideas)
     # print(toFeed)
     coder_prompt = question
@@ -139,7 +130,7 @@ def RAG_pipeline(question, coder_personality=RAGcoder_personality, printing = Tr
 
 # %%
 if __name__ == "__main__":
-    question = '''Define a table T with 5 names with corresponding score. Show the maximum of these 5 scores at the tile a1b2, together with the name that achieves this best score at c1d2.'''
-    print(RAG_pipeline(question, printing=False))
+    question = '''Let's display, as text, an expression "y = a * x + b" where `a` and `b` are replaced by their numerical values. The goal is to have the text composed dynamically based on the number values of `a` and `b`. Here, for the sake of the example, take `a = 13` and `b = 7`.'''
+    print(RAG_pipeline(question))
 
 # %%
